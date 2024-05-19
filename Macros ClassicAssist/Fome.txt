@@ -1,0 +1,24 @@
+if InJournal("You are very hungry.", "system"):  
+    ##PlaySound("Bike Horn.wav")
+    UseType(0xc6a) 
+    UseType(0x9b7) ## Cooked Bird 
+    UseType(0x103b) ## Bread loaf, Stale Bread 
+    UseType(0xc6d) ## onion
+    UseType(0xd3a) ## turnip
+    UseType(0xc6a) ## pumpkin
+    UseType(0xc5c) ## watermelon
+    UseType(0xc78) ## carrot
+    UseType(0x98c) ## french bread
+    UseType(0x1608) # chicken leg
+    UseType(0x160a) # chicken leg
+    HeadMsg('Matei a fome :)')
+    ClearJournal()
+if InJournal("You are very thirsty.", "system"):  
+    ##PlaySound("Bike Horn.wav")
+    #UseObject(0x402189ea)
+    UseType(0x98f) 
+    HeadMsg('Aquela gelada!')
+    ClearJournal()
+
+Pause(30000)
+Msg('[myhunger')

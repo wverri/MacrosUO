@@ -1,0 +1,4 @@
+if not ActiveAbility() and Mana() > 20:
+    SetAbility("primary", "on")
+    Msg("[set4")
+    Pause(100)

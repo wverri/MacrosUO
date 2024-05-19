@@ -1,0 +1,19 @@
+CreateTimer("bands")
+SetTimer("bands", 0)
+
+def Wait():
+    ClearJournal()
+    while not InJournal('You finish applying the bandages'):
+        Pause(100)
+        if InJournal('You apply the bandages, but they barely help.'):
+            return
+        if Timer("bands") > 11000:
+            return        
+    return
+        
+
+while True:
+    if Hits() < MaxHits():
+        BandageSelf()
+        SetTimer("bands", 0)
+        Wait()
