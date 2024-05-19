@@ -1,0 +1,89 @@
+def item_in_gump(gump_id, item_names):
+    for item_name in item_names:
+        if InGump(gump_id, item_name):
+            return True
+    return False
+
+def process_ps5(gump_id):
+    if InGump(gump_id, 'exceptional.') and InGump(gump_id, '15'):
+        if item_in_gump(gump_id, ['golden', 'agapite']):
+            return True
+    if InGump(gump_id, 'exceptional.') and InGump(gump_id, 'ringmail') and InGump(gump_id, 'dullcoper') and InGump(gump_id, '15'):
+        return True
+    if InGump(gump_id, 'large'):
+        if InGump(gump_id, 'shadow') and InGump(gump_id, '15'):
+            if item_in_gump(gump_id, ['axe', 'sword', 'mace']):
+                return True
+        if InGump(gump_id, 'copper') and InGump(gump_id, '15'):
+            if item_in_gump(gump_id, ['dagger', 'chainmail']):
+                return True
+    return False
+
+def process_ps10(gump_id):
+    if InGump(gump_id, 'large'):
+        if InGump(gump_id, 'exceptional.') and InGump(gump_id, 'ringmail') and InGump(gump_id, 'shadow') and InGump(gump_id, '15'):
+            return True
+        if InGump(gump_id, 'copper') and InGump(gump_id, '15'):
+            if item_in_gump(gump_id, ['axe', 'sword', 'mace']):
+                return True
+        if InGump(gump_id, 'bronze') and InGump(gump_id, '15'):
+            if item_in_gump(gump_id, ['dagger', 'chainmail']):
+                return True
+    return False
+
+def process_ps15(gump_id):
+    if InGump(gump_id, 'large'):
+        if InGump(gump_id, 'exceptional.'):
+            if InGump(gump_id, 'chainmail') and InGump(gump_id, 'copper'):
+                if item_in_gump(gump_id, ['10', '15']):
+                    return True
+            if InGump(gump_id, 'ringmail') and InGump(gump_id, 'golden'):
+                if item_in_gump(gump_id, ['10', '15']):
+                    return True
+            if InGump(gump_id, 'chainmail') and InGump(gump_id, 'shadow') and InGump(gump_id, '20'):
+                return True
+            if InGump(gump_id, 'ringmail') and InGump(gump_id, 'bronze') and InGump(gump_id, '20'):
+                return True
+        if InGump(gump_id, 'agapite') and InGump(gump_id, '15'):
+            if item_in_gump(gump_id, ['axe', 'sword', 'mace']):
+                return True
+        if InGump(gump_id, 'verite') and InGump(gump_id, '15'):
+            if item_in_gump(gump_id, ['dagger', 'chainmail']):
+                return True
+        if InGump(gump_id, 'golden') and InGump(gump_id, '20'):
+            if item_in_gump(gump_id, ['axe', 'sword', 'mace']):
+                return True
+        if InGump(gump_id, 'agapite') and InGump(gump_id, '20'):
+            if item_in_gump(gump_id, ['dagger', 'chainmail']):
+                return True
+    return False
+
+ps5 = True
+ps10 = True
+ps15 = True
+
+while True:
+
+    Pause(500)
+
+    if GumpExists(0x9bade6ea):
+        CloseGump(0x9bade6ea)
+        
+    WaitForContext(0xd308, 2, 1000)
+    WaitForGump(0x9bade6ea, 1000)
+    #Pause(1000)
+
+    if ps5 and process_ps5(0x9bade6ea):
+        ReplyGump(0x9bade6ea, 1)
+        HeadMsg("Achei BOD de PS+5","self")
+        Stop()
+    elif ps10 and process_ps10(0x9bade6ea):
+        ReplyGump(0x9bade6ea, 1)
+        HeadMsg("Achei BOD de PS+10","self")
+        Stop()
+    elif ps15 and process_ps15(0x9bade6ea):
+        ReplyGump(0x9bade6ea, 1)
+        HeadMsg("Achei BOD de PS+15","self")
+        Stop()
+    else:
+        ReplyGump(0x9bade6ea, 0)

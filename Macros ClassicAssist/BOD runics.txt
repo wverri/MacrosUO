@@ -1,0 +1,257 @@
+def check_gump_elements(gumpid, elements):
+    return all(InGump(gumpid, element) for element in elements)
+
+gumpid = 0x9bade6ea
+
+while True:
+
+    Pause(500)
+
+    if GumpExists(0x9bade6ea):
+        CloseGump(0x9bade6ea)
+        
+    WaitForContext(0xd308, 2, 1000)
+    WaitForGump(0x9bade6ea, 1000)
+
+
+    # Level 8
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'platemail', 'valorite']):
+        Stop()
+    
+    # Level 7
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'platemail', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'platemail', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'platemail', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'axe', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'katana', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'mace', 'valorite']):
+        Stop()
+    
+    # Level 6
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'platemail', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'axe', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'katana', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'mace', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'chainmail', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'dagger', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'platemail', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'axe', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'katana', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'mace', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'chainmail', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'dagger', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'platemail', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'axe', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'katana', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'mace', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'chainmail', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'dagger', 'verite']):
+        Stop()
+    
+    # Level 5
+    if check_gump_elements(gumpid, ['large', 10, 'platemail', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'platemail', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'platemail', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'axe', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'katana', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'mace', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'platemail', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'axe', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'katana', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'mace', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'chainmail', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'dagger', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'ringmail', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'bardiche', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'platemail', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'axe', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'katana', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'mace', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'chainmail', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'dagger', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'ringmail', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'bardiche', 'valorite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'platemail', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'axe', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'katana', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'mace', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'chainmail', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'dagger', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'ringmail', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'bardiche', 'verite']):
+        Stop()
+    
+    # Level 4
+    if check_gump_elements(gumpid, [20, 'exceptional', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, [10, 'exceptional', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, [15, 'exceptional', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'platemail', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'axe', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'katana', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'mace', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'chainmail', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'dagger', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'ringmail', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'bardiche', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'platemail', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'axe', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'katana', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'mace', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'chainmail', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'dagger', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'ringmail', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'bardiche', 'verite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'platemail', 'shadow']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'axe', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'katana', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'mace', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'chainmail', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'dagger', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'ringmail', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'bardiche', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'chainmail', 'dull']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'dagger', 'dull']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'ringmail', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'bardiche', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'chainmail', 'dull']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'dagger', 'dull']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'ringmail', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 15, 'exceptional', 'bardiche', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'ringmail', 'shadow']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'bardiche', 'shadow']):
+        Stop()
+    
+    # Level 3
+    if check_gump_elements(gumpid, [20, 'exceptional', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, [10, 'exceptional', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'platemail', 'shadow']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'axe', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'katana', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'mace', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'chainmail', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'dagger', 'bronze']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'ringmail', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'bardiche', 'agapite']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'platemail', 'dull']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'axe', 'shadow']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'katana', 'shadow']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'mace', 'shadow']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'chainmail', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'dagger', 'copper']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'ringmail', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'bardiche', 'golden']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'ringmail', 'shadow']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 10, 'exceptional', 'bardiche', 'shadow']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'platemail', 'iron']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'ringmail', 'dull']):
+        Stop()
+    if check_gump_elements(gumpid, ['large', 20, 'exceptional', 'bardiche', 'dull']):
+        Stop()

@@ -1,0 +1,81 @@
+def check_gump_elements(gumpid, elements_to_check):
+    return all(InGump(gumpid, element) for element in elements_to_check)
+
+def stop_if_elements_found(gumpid, element_combinations):
+    for elements in element_combinations:
+        if check_gump_elements(gumpid, elements):
+            Stop()
+
+gumpid = 0x9bade6ea
+
+while True:
+    Pause(500)
+
+    #if GumpExists(0x9bade6ea):
+    #    CloseGump(0x9bade6ea)
+        
+    WaitForContext(0xd308, 2, 2000)
+    WaitForGump(0x9bade6ea, 2000)
+
+    element_combinations = [
+        # Level 8
+        ['large', '20', 'exceptional.', 'platemail', 'valorite'],
+        # Level 7
+        ['large', '10', 'exceptional.', 'platemail', 'valorite'],
+        ['large', '15', 'exceptional.', 'platemail', 'valorite'],
+        ['large', '20', 'exceptional.', 'platemail', 'verite'],
+        ['large', '20', 'exceptional.', 'axe', 'valorite'],
+        ['large', '20', 'exceptional.', 'katana', 'valorite'],
+        ['large', '20', 'exceptional.', 'mace', 'valorite'],
+        # Level 6
+        ['large', '10', 'exceptional.', 'platemail', 'agapite'],
+        ['large', '10', 'exceptional.', 'axe', 'verite'],
+        ['large', '10', 'exceptional.', 'katana', 'verite'],
+        ['large', '10', 'exceptional.', 'mace', 'verite'],
+        ['large', '10', 'exceptional.', 'chainmail', 'valorite'],
+        ['large', '10', 'exceptional.', 'dagger', 'valorite'],
+        ['large', '15', 'exceptional.', 'platemail', 'agapite'],
+        ['large', '15', 'exceptional.', 'axe', 'verite'],
+        ['large', '15', 'exceptional.', 'katana', 'verite'],
+        ['large', '15', 'exceptional.', 'mace', 'verite'],
+        ['large', '15', 'exceptional.', 'chainmail', 'valorite'],
+        ['large', '15', 'exceptional.', 'dagger', 'valorite'],
+        ['large', '20', 'exceptional.', 'platemail', 'gold'],
+        ['large', '20', 'exceptional.', 'axe', 'agapite'],
+        ['large', '20', 'exceptional.', 'katana', 'agapite'],
+        ['large', '20', 'exceptional.', 'mace', 'agapite'],
+        ['large', '20', 'exceptional.', 'chainmail', 'verite'],
+        ['large', '20', 'exceptional.', 'dagger', 'verite'],
+        # Level 5
+        ['large', '10', 'platemail', 'valorite'],
+        ['large', '15', 'platemail', 'valorite'],
+        ['large', '20', 'platemail', 'verite'],
+        ['large', '20', 'axe', 'valorite'],
+        ['large', '20', 'katana', 'valorite'],
+        ['large', '20', 'mace', 'valorite'],
+        ['large', '10', 'exceptional.', 'platemail', 'bronze'],
+        ['large', '10', 'exceptional.', 'axe', 'gold'],
+        ['large', '10', 'exceptional.', 'katana', 'gold'],
+        ['large', '10', 'exceptional.', 'mace', 'gold'],
+        ['large', '10', 'exceptional.', 'chainmail', 'agapite'],
+        ['large', '10', 'exceptional.', 'dagger', 'agapite'],
+        ['large', '10', 'exceptional.', 'ringmail', 'valorite'],
+        ['large', '10', 'exceptional.', 'bardiche', 'valorite'],
+        ['large', '15', 'exceptional.', 'platemail', 'bronze'],
+        ['large', '15', 'exceptional.', 'axe', 'gold'],
+        ['large', '15', 'exceptional.', 'katana', 'gold'],
+        ['large', '15', 'exceptional.', 'mace', 'gold'],
+        ['large', '15', 'exceptional.', 'chainmail', 'agapite'],
+        ['large', '15', 'exceptional.', 'dagger', 'agapite'],
+        ['large', '15', 'exceptional.', 'ringmail', 'valorite'],
+        ['large', '15', 'exceptional.', 'bardiche', 'valorite'],
+        ['large', '20', 'exceptional.', 'platemail', 'copper'],
+        ['large', '20', 'exceptional.', 'axe', 'bronze'],
+        ['large', '20', 'exceptional.', 'katana', 'bronze'],
+        ['large', '20', 'exceptional.', 'mace', 'bronze'],
+        ['large', '20', 'exceptional.', 'chainmail', 'gold'],
+        ['large', '20', 'exceptional.', 'dagger', 'gold'],
+        ['large', '20', 'exceptional.', 'ringmail', 'verite'],
+        ['large', '20', 'exceptional.', 'bardiche', 'verite']
+    ]
+    stop_if_elements_found(0x9bade6ea, element_combinations)

@@ -1,0 +1,69 @@
+def item_in_gump(gump_id, item_names):
+    for item_name in item_names:
+        if InGump(gump_id, item_name):
+            return True
+    return False
+
+WaitForContext(0xd308, 2, 500)
+WaitForGump(0x9bade6ea, 500)
+Pause(500)
+
+#PS +5
+if InGump(0x9bade6ea, 'exceptional.') and InGump(0x9bade6ea, '15'):
+    if item_in_gump(0x9bade6ea, ['golden', 'agapite']):
+        ReplyGump(0x9bade6ea, 1)
+
+if InGump(0x9bade6ea, 'exceptional.') and InGump(0x9bade6ea, 'ringmail') and InGump(0x9bade6ea, 'dullcoper') and InGump(0x9bade6ea, '15'):
+    ReplyGump(0x9bade6ea, 1)
+
+if InGump(0x9bade6ea, 'large') and InGump(0x9bade6ea, 'shadow') and InGump(0x9bade6ea, '15'):
+    if item_in_gump(0x9bade6ea, ['axe', 'sword','mace']):
+        ReplyGump(0x9bade6ea, 1)
+if InGump(0x9bade6ea, 'large') and InGump(0x9bade6ea, 'copper') and InGump(0x9bade6ea, '15'):
+    if item_in_gump(0x9bade6ea, ['dagger', 'chainmail']):
+        ReplyGump(0x9bade6ea, 1)
+
+#PS +10
+if InGump(0x9bade6ea, 'exceptional.') and InGump(0x9bade6ea, 'ringmail') and InGump(0x9bade6ea, 'shadow') and InGump(0x9bade6ea, 'large') and InGump(0x9bade6ea, '15'):
+    ReplyGump(0x9bade6ea, 1)
+
+if InGump(0x9bade6ea, 'large') and InGump(0x9bade6ea, 'copper') and InGump(0x9bade6ea, '15'):
+    if item_in_gump(0x9bade6ea, ['axe', 'sword','mace']):
+        ReplyGump(0x9bade6ea, 1)
+if InGump(0x9bade6ea, 'large') and InGump(0x9bade6ea, 'bronze') and InGump(0x9bade6ea, '15'):
+    if item_in_gump(0x9bade6ea, ['dagger', 'chainmail']):
+        ReplyGump(0x9bade6ea, 1)
+
+
+#PS +15
+if InGump(0x9bade6ea, 'exceptional.') and InGump(0x9bade6ea, 'large'):
+    if InGump(0x9bade6ea, 'chainmail') and InGump(0x9bade6ea, 'copper'):
+        if item_in_gump(0x9bade6ea, ['10', '15',]):
+            ReplyGump(0x9bade6ea, 1)
+    if InGump(0x9bade6ea, 'ringmail') and InGump(0x9bade6ea, 'golden'):
+        if item_in_gump(0x9bade6ea, ['10', '15',]):
+            ReplyGump(0x9bade6ea, 1)
+    if InGump(0x9bade6ea, 'chainmail') and InGump(0x9bade6ea, 'shadow') and InGump(0x9bade6ea, '20'):
+        ReplyGump(0x9bade6ea, 1)
+    if InGump(0x9bade6ea, 'ringmail') and InGump(0x9bade6ea, 'bronze') and InGump(0x9bade6ea, '20'):
+        ReplyGump(0x9bade6ea, 1)
+
+if InGump(0x9bade6ea, 'large') and InGump(0x9bade6ea, 'agapite'):
+    if item_in_gump(0x9bade6ea, ['axe', 'sword','mace']):
+        if item_in_gump(0x9bade6ea, ['10','15']):
+            ReplyGump(0x9bade6ea, 1)
+
+if InGump(0x9bade6ea, 'large') and InGump(0x9bade6ea, 'verite'):
+    if item_in_gump(0x9bade6ea, ['10', '15']):
+        if item_in_gump(0x9bade6ea, ['dagger', 'chainmail']):
+            ReplyGump(0x9bade6ea, 1)
+
+if InGump(0x9bade6ea, 'large') and InGump(0x9bade6ea, 'agapite') and InGump(0x9bade6ea, '20'):
+    if item_in_gump(0x9bade6ea, ['dagger', 'chainmail']):
+        ReplyGump(0x9bade6ea, 1)
+
+if InGump(0x9bade6ea, 'large') and InGump(0x9bade6ea, 'golden') and InGump(0x9bade6ea, '20'):
+    if item_in_gump(0x9bade6ea, ['axe', 'sword','mace']):
+        ReplyGump(0x9bade6ea, 1)
+
+

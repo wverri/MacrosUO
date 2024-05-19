@@ -1,0 +1,132 @@
+
+
+# MACRO DE MINER ALEATORIO PARA UOODYSSEY
+# Feito por WillxD
+# Configurado para minerar em Britain, minera e smelta
+# Importante ter TinkerTools na bag para fazer mais picaretas se essas acabarem.
+
+import clr
+import System
+from Assistant import Engine
+from ClassicAssist.UO.Data import Statics
+from ClassicAssist.UO import UOMath
+from Assistant import Engine
+from System import Convert
+from System import Random
+
+# PromptAlias('Packlhama')
+# SetAlias('Packlhama', 0x0031f1a)
+# Função de guardar em packhorse não habilitada
+def guardar():
+    while FindType(0x19b9, -1, 'backpack'):
+        log = GetAlias('found')
+        if FindType(0x151, 2):
+            if PropertyValue[int]('found', 'Stones') < 2300:
+                MoveItem(log, "found")
+            else:
+                IgnoreObject("found")
+        else:
+            HeadMsg("Todos os cavalos cheios!", "self")
+            Stop()
+    return
+
+def Mine():
+    HeadMsg("Minerar")
+    ClearJournal()
+    while not InJournal('There is no metal here to mine.'):
+        if not FindType(0xe86,-1,'backpack'):
+            FazerPicareta()
+        if (Weight() > 550):
+            SmeltOre()
+        UseType(0xe86)
+        WaitForTarget(1000)
+        TargetTileOffsetResource(0, 0, 0)
+        Pause(200)
+        if InJournal('There is no metal here to mine.'):
+            break
+        Pause(1000)
+        if InJournal('worn out your tool!'):
+            #FazerPicareta()
+            UseType(0xe86)
+            WaitForTarget(1000)
+            TargetTileOffsetResource(0, 0, 0)
+            Pause(1200)
+    HeadMsg("Guardando")
+    #guardar()
+    
+    return
+
+rand = [ 'East', 'West', 'North', 'South', 'Northeast', 'Southeast', 'Southwest', 'Northwest' ]
+rando = Random()
+
+def Andar(x,y):
+    Pathfind(x,y,0)
+    tentativa = 0
+    while X('self') != x or Y('self') != y:
+        Pause(100)
+        tentativa += 1
+        if tentativa > 10:
+            Pathfind(x,y,0)
+            tentativa = 0
+    return
+
+def SmeltOre():
+    Andar(3115,3905) # Localização da forja
+        
+    while FindType(0x19b9, 0, "backpack"):
+        item = Engine.Items.GetItem(GetAlias("found"))
+        if item == None: continue
+
+        # Nunca Smeltar Dwarven, Obsidian, Xormite, Zinc, or Coal
+        if item.Hue == 1788 or item.Hue == 1986 or item.Hue == 1991 or item.Hue == 2500 or item.Hue == 1175:
+            IgnoreObject("found")
+            continue
+
+        UseObject("found")
+        WaitForTarget(2000)
+        TargetXYZ(3114, 3905, 0, 4017) # Target da Forja
+        Pause(1000)
+        
+    while FindType(0x19b8, 0, "backpack"): # ore com gráfico menor
+        item = Engine.Items.GetItem(GetAlias("found"))
+        if item == None: continue
+
+        # Nunca Smeltar Dwarven, Obsidian, Xormite, Zinc, or Coal
+        if item.Hue == 1788 or item.Hue == 1986 or item.Hue == 1991 or item.Hue == 2500 or item.Hue == 1175:
+            IgnoreObject("found")
+            continue
+
+        UseObject("found")
+        WaitForTarget(2000)
+        TargetXYZ(3114, 3905, 0, 4017)
+        Pause(1000)
+        
+    return
+    
+def FazerPicareta():
+    ClearJournal()
+    
+    if FindType(0x1EB8, 0, "backpack"):
+        UseObject("Found")                    #Tinker Tools
+        WaitForGump(0x38920abd, 5000)
+        ReplyGump(0x38920abd, 29)
+        WaitForGump(0x38920abd, 5000)
+        ReplyGump(0x38920abd, 100)
+        WaitForGump(0x38920abd, 5000)
+        ReplyGump(0x38920abd, 0)        #Close tools
+    else:
+        HeadMsg("Acabaram os Tinker Tools", "self")
+        Stop()
+    return
+
+ClearIgnoreList()
+while True:
+    Mine()
+    Run(rand[rando.Next(8)])
+    Run(Direction('self'))
+    Run(Direction('self'))
+    Run(Direction('self'))
+    Run(Direction('self'))
+    Run(Direction('self'))
+    Run(Direction('self'))
+
