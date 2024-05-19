@@ -1,0 +1,102 @@
+function attackClosestRail() {
+    Orion.IgnoreReset();
+    Orion.Ignore(self);
+
+    var route = [
+        { x: 1628, y: 828 },
+		{ x: 1628, y: 828 },
+		{ x: 1718, y: 844 },
+		{ x: 1736, y: 938 },
+		{ x: 1752, y: 1034 },
+		{ x: 1768, y: 1148 },
+		{ x: 1748, y: 1202 },
+		{ x: 1754, y: 1022 },
+		{ x: 1710, y: 1260 },
+		{ x: 1682, y: 1266 },
+		{ x: 1630, y: 1268 },
+		{ x: 1656, y: 1314 },
+		{ x: 1620, y: 1326 },
+		{ x: 1594, y: 1314 },
+		{ x: 1566, y: 1278 },
+		{ x: 1566, y: 1278 },
+		{ x: 1536, y: 1282 },
+		{ x: 1518, y: 1282 },
+		{ x: 1490, y: 1286 },
+		{ x: 1510, y: 1318 },
+		{ x: 1480, y: 1282 },
+		{ x: 1480, y: 1338 },
+		{ x: 1450, y: 1374 },
+		{ x: 1432, y: 1398 },
+		{ x: 1398, y: 1384 },
+		{ x: 1392, y: 1340 },
+		{ x: 1390, y: 1292 },
+		{ x: 1370, y: 1268 },
+		{ x: 1340, y: 1270 },
+		{ x: 1344, y: 1308 },
+		{ x: 1344, y: 1338 },
+		{ x: 1344, y: 1374 },
+		{ x: 1308, y: 1390 },
+		{ x: 1285, y: 1390 },
+		{ x: 1276, y: 1358 },
+		{ x: 1278, y: 1324 },
+		{ x: 1257, y: 1316 },
+		{ x: 1234, y: 1336 },
+		{ x: 1229, y: 1366 },
+		{ x: 1226, y: 1396 },
+		{ x: 1224, y: 1418 },
+		{ x: 1504, y: 1306 },
+		{ x: 1716, y: 1230 },
+		{ x: 1722, y: 842 },
+		{ x: 1734, y: 792 },
+		{ x: 1696, y: 766 },
+		{ x: 1770, y: 752 },
+		{ x: 1790, y: 746 },
+		{ x: 1822, y: 746 },
+		{ x: 1732, y: 822 },
+		{ x: 1656, y: 830 }
+    ];
+    var currentRouteIndex = 0;
+
+    while (true) {
+        if (Player.Dead()) {
+            // Se o personagem estiver morto ou como fantasma, execute a função de ressurreição
+            Ress();
+            Orion.Wait(180000); // Aguarde 3 minutos até ressuscitar
+            continue; // Pule para a próxima iteração do loop
+        }
+
+        var enemy = Orion.FindType("any", -1, "ground", "mobile | near | ignorefriends", "30", "gray | criminal | enemy | red");
+        var obj = Orion.FindObject(enemy);
+        Orion.Wait(50);
+
+        if (obj != null) {
+        	Orion.Attack(enemy);
+            while (obj.Exists()) {
+                if (Orion.GetDistance(obj) > 1) {
+                    Orion.WalkTo(obj.X(), obj.Y(), obj.Z(), 1);
+                    Orion.Attack(enemy);
+                } else {
+                    Orion.Attack(enemy);
+                }
+            }
+        } else {
+            // Se não houver inimigos próximos, ande até a próxima coordenada da rota
+            var nextCoord = route[currentRouteIndex];
+            Orion.WalkTo(nextCoord.x, nextCoord.y, 0, 0);
+
+            // Avance para a próxima coordenada da rota (ciclo)
+            currentRouteIndex = (currentRouteIndex + 1) % route.length;
+        }
+    }
+}
+
+function Ress() {
+    Orion.HelpGump();
+    if (Orion.WaitForGump(1000)) {
+        var gump0 = Orion.GetGump('last');
+        if ((gump0 !== null) && (!gump0.Replayed()) && (gump0.ID() === '0x0000040E')) {
+            gump0.Select(Orion.CreateGumpHook(2));
+            Orion.Wait(100);
+        }
+    }
+}

@@ -1,0 +1,15 @@
+function taming() {
+	var target = Orion.AddObject('target');
+	if (target) {
+	    while (true) {
+	        Orion.UseSkill('Animal Taming');
+	        Orion.Wait(1000);
+	        if (Orion.InJournal('fail to tame')) {
+	            Orion.Print('Tentativa de domar falhou');
+	        } else if (Orion.InJournal('seems to accept')) {
+	            Orion.Print('Animal parece aceitar a domação');
+	            break;
+	        }
+	    }
+	}
+}

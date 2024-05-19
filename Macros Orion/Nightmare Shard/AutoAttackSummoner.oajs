@@ -1,0 +1,17 @@
+function summonAttackClosest()
+{
+    Orion.IgnoreReset();
+    Orion.Ignore(self);
+    while (true)
+    {
+        var enemy = Orion.FindType('any', 'any', 'ground', 'mobile | near | ignorefriends', '30', 'enemy | red');
+        if (enemy[0] != null) {
+            Orion.Say("all kill");
+            Orion.WaitForTarget(5000);
+            Orion.TargetObject(enemy[0]);
+            Orion.Attack(enemy[0]);
+        }
+        Orion.Wait(5000);
+        Orion.PlayMacro('summon1');
+    }
+}

@@ -1,0 +1,69 @@
+function AltarBritSummoner() {
+    Orion.IgnoreReset();
+    Orion.Ignore(self);
+
+    var route = [
+        { x: 1478, y: 1383 },
+		{ x: 1377, y: 1399 },
+		{ x: 1393, y: 1355 }
+    ];
+
+    var altares = [ '0x40016031', '0x4001A429', '0x40019A6C' ]
+
+    var branco = '0x0481';
+
+    var currentRouteIndex = 0;
+
+    while (true) {
+        if (Player.Dead()) {
+            // Se o personagem estiver morto ou como fantasma, execute a função de ressurreição
+            Ress();
+            Orion.Wait(180000);
+            continue; // 
+        }
+
+        var nextCoord = route[currentRouteIndex];
+        Orion.WalkTo(nextCoord.x, nextCoord.y, 0, 0);
+        Orion.Wait(100);
+
+        var altarID = Orion.FindObject(altares[currentRouteIndex]);
+        Orion.Print("ID: " + altarID.Serial());
+        var altarColor = altarID.Color();
+        Orion.Print("Cor: " + altarColor);
+
+        if (altarColor === branco) {
+            Orion.UseObject(altarID.Serial());
+            while (altarColor === branco) {
+                if (altarID == null) {
+                    break; // Sai do loop se altarID for null
+                }
+                var enemy = Orion.FindType('any', 'any', 'ground', 'mobile | near | ignorefriends', '30', 'enemy | red');
+                if (enemy[0] != null) {
+                    Orion.Say("all kill");
+                    Orion.WaitForTarget(5000);
+                    Orion.TargetObject(enemy[0]);
+                    Orion.Attack(enemy[0]);
+                }
+                Orion.Wait(5000);
+                Orion.PlayMacro('summon1');
+                altarID = Orion.FindObject(altares[currentRouteIndex]); // Atualiza altarID para a próxima iteração
+                if (altarID == null) {
+                    break; // Verifica novamente se altarID é null após a atualização
+                }
+                altarColor = altarID.Color(); // Atualiza altarColor para a próxima iteração
+            }
+        }
+        currentRouteIndex = (currentRouteIndex + 1) % route.length;
+    }
+}
+
+function Ress() {
+    Orion.HelpGump();
+    if (Orion.WaitForGump(1000)) {
+        var gump0 = Orion.GetGump('last');
+        if ((gump0 !== null) && (!gump0.Replayed()) && (gump0.ID() === '0x0000040E')) {
+            gump0.Select(Orion.CreateGumpHook(2));
+            Orion.Wait(100);
+        }
+    }
+}

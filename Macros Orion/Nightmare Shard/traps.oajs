@@ -1,0 +1,45 @@
+function highlightTraps() {
+    var trapGraphic = '0x119B';
+    var mapWidth = 20; // Define a largura da área a ser escaneada
+    var mapHeight = 20; // Define a altura da área a ser escaneada
+    var playerX = Player.X();
+    var playerY = Player.Y();
+    var startX = playerX - mapWidth;
+    var startY = playerY - mapHeight;
+    var endX = playerX + mapWidth;
+    var endY = playerY + mapHeight;
+
+    Orion.Print("Iniciando a varredura de armadilhas...");
+
+    // Busca todos os itens do tipo trapGraphic no chão
+    var allTraps = Orion.FindType(trapGraphic, '-1', 'ground', '', '20');
+
+    // Mapeia os itens encontrados por suas coordenadas
+    var trapsMap = {};
+    allTraps.forEach(function(id) {
+        var item = Orion.FindObject(id);
+        var key = item.X() + "," + item.Y();
+        if (!trapsMap[key]) {
+            trapsMap[key] = [];
+        }
+        trapsMap[key].push(id);
+        Orion.Print("Encontrado " + item.Graphic() + " em: " + key);
+    });
+
+    // Varre a área ao redor do jogador
+    for (var x = startX; x <= endX; x++) {
+        for (var y = startY; y <= endY; y++) {
+            var key = x + "," + y;
+            var itemsAtTile = trapsMap[key] || [];
+
+            Orion.Print("Verificando tile em: " + x + ", " + y + " - Encontrados: " + itemsAtTile.length);
+            if (itemsAtTile.length > 0) {
+                // Se uma armadilha for encontrada, destaca o tile em vermelho
+                //Orion.AddHighlightArea(key, -1, 'pos', '0x0028', 0, 0, 'land', x, y); // Vermelho
+            } else {
+                // Se nenhuma armadilha for encontrada, destaca o tile em verde
+                Orion.AddHighlightArea(key, -1, 'pos', '0x0046', 0, 0, 'land', x, y); // Verde
+            }
+        }
+    }
+}

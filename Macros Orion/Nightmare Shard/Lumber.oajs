@@ -1,0 +1,609 @@
+/*
+ * Script   : Altiric's Amazing Arborist
+ * Author   : Altiric
+ * Created  : May 20, 2022
+ * Revised  : Aug 10, 2023
+ * Version  : 1.2
+ * Comments, Updates, Support: http://www.github.com/Altiric/Public
+ * 
+ * Usage:
+ * -Run Autostart()
+ * -Target a secure container, unless done previously
+ * -Enjoy
+ * 
+ * Setup:
+ * -Adjust OA->Main->Options 1->useitemdelay and moveitemdelay to suit your enviroment
+ * -Have a secure container in an accessible location of your main floor.
+ * -If axes break on your shard, have extras in a pouch inside the secure.
+ * -run Autostart()
+ * -You don't even need any skills to get started!
+ * 
+ * Function:
+ * -Script starts by setting up secure container if one has not been set.
+ * -If a giant beetle is found, its set as pack animal
+ * -Scans for and chops trees, reducing logs to boards
+ * -Moves wood to beetle if available
+ * -Unloads to secure when full and continues
+ * -Will return to secure if beetle or player enter battle or a hostile player is detected
+ * -Script will stop taking actions while in war mode
+ * -Activates war mode while walking if stuck on stairs (also toggles avoid walking on stairs in war mode on)
+ * -Attempts to recover pack animal that gets stuck on stairs
+ * 
+ * v1.2
+ *  -Code restructured, better layout, more debugging, more comments
+ *  -Script now only walks when riding an overloaded beetle
+ *  -Added setup gump for easy configuration
+ *  -Updated all journal checks to Clilocs, should now work with any language!
+ *  -A tree history will be built as the script scans for trees in range of secure
+ *  -Once the list is built, trees that dont produce wood will be skipped
+ *  -Trees are ignored for 30minutes once harvested, then reset
+ *  -If all trees in range are depleted, script will wait tree timers reset then continue
+ *  -Tree colors: white=active, lightgreen=chopList, color=lastWoodType, plain=not harvesting
+ * v1.1 updates:
+ *  -Now waits at secure for hp regen instead of pausing
+ *  -Now waits at secure 5min, then rechecks area for hostiles instead of pausing
+ *  -Now detects tinkering skill and will pull ingots from secure instead of axes, makes axes as needed
+ *  -Better navigation, more intelligent tree finding
+ *  -*Bugfix: Fixed issue with not having axes in secure causing an error
+ * 
+ * Complete revemp: Removed everything extra and just kept and built on what works.
+ * The function of the script is simple, collect as many boards/resources as possible, 
+ * as easily as possible!
+ * 
+ */
+
+var MAXPACKWEIGHT = 1600;   // Max wieght beetle can carry (OSI default: 1600)
+var RESPAWNTIMER = 30;      // Minutes till trees respawn
+
+const items = {
+    logs    : '0x1BDD',     // Graphic of logs
+    boards  : '0x1BD7',     // Graphic of boards
+    pouch   : '0x0E76',     // Graphic of pouch (used as axe container in secure)
+    axes    : ['0xF47', '0xF4B', '0xF45', '0xF43', '0x13FB', '0x1443', '0x13B0', '0xF49'], // Array of Graphic for axes
+};
+
+const color = {
+    label   : '0x7FA',      // Modify this to update the gumps
+    value   : '0x002B',     // Modify this to update the gumps
+    green 	: {light: '0x0046', norm: '0x0044', dark: '0x00A7'},
+    blue	: {light: '0x0064', norm: '0x0062', dark: '0x00C5'},
+    red		: {light: '0x0028', norm: '0x0026', dark: '0x0089'},
+    orange	: {light: '0x002D', norm: '0x002B', dark: '0x008E'},
+    purple	: {light: '0x001E', norm: '0x0017', dark: '0x007A'},
+    yellow	: {light: '0x0037', norm: '0x0035', dark: '0x0098'},
+    white	: {light: '0x7FA',  norm: '0x7EE',  dark: '0x7E2' }
+};
+
+const harvestTable = [ // Custom entries must follow this layout to work in the script
+    { name: 'ordinary',         color: '0x0000', cliloc: 1072540},
+    { name: 'oak',              color: '0x07DA', cliloc: 1072541},   
+    { name: 'ash',              color: '0x04A7', cliloc: 1072542},
+    { name: 'yew',              color: '0x04A8', cliloc: 1072543},
+    { name: 'bloodwood',        color: '0x04A9', cliloc: 1072544},
+    { name: 'heartwood',        color: '0x04A8', cliloc: 1072545},
+    { name: 'frostwood',        color: '0x047F', cliloc: 1072546},
+    { name: 'brilliant amber',  color: '0x0035', type: '0x3199', cliloc: 1072551},
+    { name: 'luminecient fungi',color: '0x0097', type: '0x3191', cliloc: 1072550},
+    { name: 'bark fragment',    color: '0x0097', type: '0x318F', cliloc: 1072548},
+    { name: 'switch',           color: '0x021E', type: '0x2F5F', cliloc: 1072547},
+    { name: 'parasitic plant',  color: '0x003F', type: '0x3190', cliloc: 1072549},
+    { name: 'crystal shard',    color: '0x0000', type: '0x5738', cliloc: 1113756},
+    { name: 'boards',           color: 'any',    type: '0x1BD7'}
+];
+
+// Internal Variables
+var history = history ? history : loadHistory();
+var currentTree = null;
+const failedString = [
+    Orion.GetCliLocString(500486),  // That is too far away
+    Orion.GetCliLocString(500487),  // The axe must be equipped
+    Orion.GetCliLocString(500489),  // You cant use an axe on that
+    Orion.GetCliLocString(500499),  // You broke your axe
+    Orion.GetCliLocString(500950),  // You cannot see that
+    Orion.GetCliLocString(500497),  // Full Backpack
+    Orion.GetCliLocString(500493)   // Not enough wood
+].join('|');
+
+/*
+*   Main function, this runs the script
+*/
+function Autoharvest(){
+    if(!Orion.RegRead('secure').length){
+        log(1, "Setup required");
+        setup();
+        return;
+    }
+    log(1, "Lumberjack started");
+    while(Orion.Connected()){
+        var trees = AAA.findTrees();
+        if(!trees.length){
+            if(history.length){
+                log(1, "Loading tree history");
+                trees = history
+                    .filter(function(tree){
+                        // Filter out empty trees
+                        return tree.color !== "0x0000" })
+                    .filter(function(tree){
+                        // Filter out trees harvested in the last 30 minutes
+                        return AAA.timeDiffInMinutes(tree.timer) >= RESPAWNTIMER })
+                trees.forEach(function(tree){
+                    Orion.AddHighlightArea([tree.x, tree.y].toString(), -1, 'pos', tree.color, 0, 0, 'static', tree.x, tree.y) 
+                });
+            }
+            if(!trees.length){
+                log(1, "All trees on timers, returning to secure");
+                AAA.openSecure();
+                Orion.Wait(30000);
+            }
+        }
+        while(trees.length)
+            trees = chop(trees);
+
+        Orion.Wait(100);
+    }
+}
+
+function chop(trees){
+    const harvestCliloc = harvestTable.map(function(ht){ return Orion.GetCliLocString(ht.cliloc) }).join('|');
+    var treeColor = '0xFFFF', chops = 0;
+    trees.sort(function(a, b){ return Orion.GetDistance(a.x, a.y) - Orion.GetDistance(b.x, b.y) });
+    var minDistance = Orion.GetDistance(trees[0].x, trees[0].y);
+    var closestTrees = trees.filter(function(tree){ return Orion.GetDistance(tree.x, tree.y) === minDistance });
+    var tree = closestTrees[Math.floor(Math.random() * closestTrees.length)];
+    currentTree = tree;
+    trees = trees.filter(function(t){ return t.x !== tree.x || t.y !== tree.y });
+
+    Orion.AddHighlightArea([tree.x, tree.y].toString(), -1, 'pos', color.white.light, 0, 0, 'static', tree.x, tree.y)
+
+    if(Orion.GetDistance(tree.x, tree.y) > 2)
+        AAA.walkTo(tree.x, tree.y);
+
+    log(1, "Chopping Tree");
+    tree.color = '0x00A7';
+    while(!Orion.InJournal(failedString)){
+        AAA.checkWeight();
+        AAA.useAxe(tree.x, tree.y);
+        if(Orion.InJournal(harvestCliloc)){
+            var string = Orion.InJournal(harvestCliloc);
+            Orion.ClearJournal(harvestCliloc);
+            if (!Orion.Contains(string.Text(), "You chop")) continue;
+            var harvestedWoodColor = harvestTable.filter(function(ht){
+                return match = Orion.GetCliLocString(ht.cliloc) == string.Text();
+            }).map(function(ht){
+                return ht.color;
+            })[0];
+        
+            if(harvestedWoodColor !== '0x0000') // Only update if harvested wood color is not ordinary
+                tree.color = harvestedWoodColor;
+        }
+        
+        chops++;
+    }
+
+    Orion.ClearJournal(failedString);
+    Orion.ClearJournal("You chop");
+    
+    if(chops == 1){
+        Orion.RemoveHighlightArea([tree.x, tree.y].toString());
+        tree.color = '0x0000';
+    } else
+        Orion.AddHighlightArea([tree.x, tree.y].toString(), -1, 'pos', tree.color, 0, 0, 'static', tree.x, tree.y)
+    var currentTime = new Date();
+    tree.timer = currentTime.getTime(); 
+    history.push(tree);
+    saveHistory();
+    return trees;
+}
+
+function walkRun(){
+    // returns run if not mounted or mount weight wont cause stamina drain
+    return (beetle && Orion.ObjAtLayer('Mount') && AAA.getbeetleSpace() <= 1050) ? 2 : 1;
+}
+
+// Get the distance between two points
+function distance(point1, point2){
+    var dx = point1.X() - point2.X();
+    var dy = point1.Y() - point2.Y();
+    return Math.sqrt(dx*dx + dy*dy);
+}
+
+//Ensure tree is not trapped
+function isReachable(tree){
+    return Orion.GetTilesInRect('tree', tree.x - 2, tree.y - 2, tree.x + 2, tree.y + 2).length < 16;
+}
+
+function walkWatch(){
+    Orion.Wait(500);
+    var pos = {};
+    while(Orion.IsWalking()){
+        pos.x = Player.X();
+        pos.y = Player.Y();
+        Orion.Wait(2000);
+        if(Orion.GetDistance(pos.x, pos.y) < 2)
+            Orion.WarMode(true);
+    }
+    Orion.WarMode(false);
+}
+
+// Log levels: 0=none, 1=actions, 2=detailed, 3=debug
+function log(level, message){
+    var logLevel = Number(Orion.RegRead('loglevel'));
+    var color = level === 2 ? '0x0035' : level === 3 ? '0x0026' : '0x0037';
+    if((level === 1 && logLevel === 1) || ((level === 1 || level === 2) && logLevel === 2))
+        Orion.Print(color, message);
+    
+    if(logLevel === 3){
+        if(!TextWindow.IsOpened()){
+            TextWindow.Open();
+            TextWindow.Clear();
+            TextWindow.Print("Debug started: " +Orion.Date('dd:MM:yyyy') +" " +Orion.Time('hh:mm:ss'));
+        }
+        TextWindow.Print(Orion.Time('hh:mm:ss') +"] " +" " +message);
+    }
+}
+
+// Loads tree history from OA directory
+function loadHistory(){
+    var file = Orion.NewFile();
+    file.Open(Player.Serial()+'.tree');
+    var data = file.ReadAll();
+    file.Close();
+    return data.length ? JSON.parse(data) : [];
+}
+
+// Saves tree history to "Orion Launcher/" directory as Player.Serial().tree
+function saveHistory(){
+    var file = Orion.NewFile();
+    file.Open(Player.Serial()+'.tree');
+    file.Write(JSON.stringify(history, 0, 4));
+    file.Close();
+}
+
+// Setup gump
+function setup(){
+    var serial = 999, panel = Orion.CreateCustomGump(serial);
+    panel.Clear();
+    panel.SetCallback('process');
+    Orion.OpenPaperdoll(Player.Serial());
+    Orion.ClientOptionSet('BlockWalkingOnMultiStairsInWarMode', true);
+    Orion.RemoveHighlightArea('all');
+    Orion.ClearJournal();
+
+    panel.AddResizepic(0, 0, 0x254E, 300, 150);
+
+    panel.AddText(10, 10, color.label, "Secure:");
+    panel.AddButton('1', 85, 12, 0x4B9, 0x4BA, 0x4B9, 0x0000);
+    panel.AddTooltip("Set Secure");
+    var secure = Orion.RegRead('secure').length ? Orion.FindObject(Orion.RegRead('secure')) : false;
+    panel.AddText(100, 10, color.value, secure ? secure.Name() : "Not set", 200, serial++);
+
+    panel.AddText(10, 25, color.label, "Pack beetle:");
+    panel.AddButton('2', 85, 27, 0x4B9, 0x4BA, 0x4B9, 0x0000);
+    panel.AddTooltip("Set Pack beetle");
+    var beetle = Orion.RegRead('beetle').length ? Orion.FindObject(Orion.RegRead('beetle')) : false;
+    panel.AddText(100, 25, color.value, beetle ? beetle.Name() : "Not set", 200, serial++);
+
+    panel.AddText(10, 45, color.label, "Max Distance:");
+    panel.AddResizepic(95, 45, '0x0BB8', 70, 22);
+    panel.AddMinMaxButtons('22', 125, 45, '0x0037', 0, 10, 250, Orion.RegRead('maxDistance').length ? Orion.RegRead('maxDistance') : 30);
+    panel.SetTextParameters(1, 'LeftCenter');
+
+    panel.AddCheckbox('11', 10, 65, 0xD2, 0xD2, 0xD3, (Orion.ShardName() == "Siege Perilous" || Orion.ShardName() == "Mugen" || Orion.RegRead('axesNeeded') > 0) ? 1 : 0, 0x0000, "Axes Break", color.label);
+
+    panel.AddText(10, 85, color.label, "Message Level:");
+    panel.AddComboBox('33', 100, 85, '0xBB8', 0, '0xBB8', 85, 0);
+    panel.AddComboBoxText("Silent", 0, Orion.RegRead('loglevel') == 0 ? 1 : 0);
+    panel.AddComboBoxText("Actions", 0, Orion.RegRead('loglevel') == 1 ? 1 : 0);
+    panel.AddComboBoxText("Detailed", 0, Orion.RegRead('loglevel') == 2 ? 1 : 0);
+    panel.AddComboBoxText("Debug", 0, Orion.RegRead('loglevel') == 3 ? 1 : 0);
+
+    panel.AddButton('3', 75, 110, 0xF7, 0xF9, 0xF8, 0x0000);
+    panel.Update();
+}
+
+// Process gump clicks
+function process(){
+    var button = CustomGumpResponse.ReturnCode(), panel = Orion.CreateCustomGump(999);
+    switch(button){
+        case 1:
+            Orion.CharPrint(Player.Serial(), color.yellow.norm, "Select Secure Container");
+            Orion.WaitForAddObject('secure');
+            var secure = Orion.FindObject('secure');
+            if(!Orion.Contains(secure.Properties(), "Contents")){
+                Orion.RemoveObject('secure');
+                log(1, "Invalid Secure Container");
+            } else {
+                log(1, "secure container set");
+                setup();
+            }
+            break;
+        case 2:
+            Orion.CharPrint(Player.Serial(), color.yellow.norm, "Select Pack beetle");
+            Orion.WaitForAddObject('beetle');
+            var beetle = Orion.FindObject('beetle');
+            if(!Orion.Contains(beetle.Properties(), "Weight"))
+                log(1, "Invalid beetle");
+            else {
+                log(1, "beetle set");
+                setup();
+            }
+            break;
+        case 3:
+            var loglevel = CustomGumpResponse.ComboBox(33);
+            Orion.RegWrite('loglevel', loglevel);
+            Orion.Print(color.green.norm, "logLevel: " +loglevel);
+            var maxDistance = CustomGumpResponse.MinMaxButton(22);
+            log(2, "maxDistance: " +maxDistance);
+            Orion.RegWrite('maxDistance', maxDistance);
+            var axesNeeded = CustomGumpResponse.CheckBox(11);
+            if(axesNeeded){
+                log(2, "Axes needed: 3");
+                Orion.RegWrite('axesNeeded', 3);
+            } else {
+                log(2, "Axes needed: 1");
+                Orion.RegWrite('axesNeeded', 1);
+            }
+            panel.Close();
+            Orion.ToggleScript('Autoharvest', true);
+            break;
+    }
+}
+
+var beetle = Orion.FindObject('beetle');
+
+// Utility functions placed inside here
+var AAA = {
+    // Returns available space in beetles pack
+    getbeetleSpace: function(){
+        if(!beetle) return 0;
+        var weightPattern = /Weight:\s(.*)\sStones/; // Regex string
+        var weight = beetle.Properties().match(weightPattern); // Match with Properties
+
+        var currentWeight = parseInt(weight[1]);
+        var space = Math.max(0, MAXPACKWEIGHT - currentWeight); // Ensure space is not negative
+            
+        return space || 0; // return the available space
+    },
+
+    // Mounts beetle
+    mount: function(){
+        if(beetle && beetle.Distance() < 3 && !beetle.WarMode()){
+            log(3, "mounting")
+            Orion.UseObject('beetle');
+            Orion.Wait('useitemdelay');
+        } else {
+            if(beetle.WarMode())
+                log(3, "mount is fighting");
+            else if(beetle.Distance() > 2)
+                log(3, "beetle too far to mount");
+            else
+                log(3, "no beetles to mount");
+        }
+    },
+
+    // Dismounts beetle
+    dismount: function(){
+        if(Orion.ObjAtLayer('Mount')){
+            log(3, "dismounting");
+            Orion.UseObject(Player.Serial());
+            Orion.Wait('useitemdelay');
+        } else {
+            log(3, "not mounted");
+        }
+    },
+
+    // useAxe(object) or useAxe(x, y)
+    useAxe: function(x, y){
+        // check hands for an axe
+        var axe = Orion.ObjAtLayer('LeftHand') ? Orion.ObjAtLayer('LeftHand') : Orion.ObjAtLayer('RightHand');
+        if(!axe){
+            if(Orion.Count(items.axes.join('|'), any, backpack) > 0){ // If carrying axes
+                Orion.EquipT(items.axes.join('|')); // equip one
+                Orion.Wait('useitemdelay');
+            } else { // No axes in pack
+                log(2, "need an axe");
+                AAA.openSecure(); // walkto and open secure
+                while(AAA.countAxes() < Orion.RegRead('axesNeeded'))
+                    AAA.grabAxe();
+            }
+        }
+        if(!Number(y)){ // object sent as target
+            if(Orion.UseType(items.axes.join('|'), any, self)){
+                log(3, "Using axe on object: " +x);
+                Orion.WaitTargetObject(x);
+                Orion.Wait('useitemdelay');
+                return true;
+            }
+        } else { // coords sent as target
+            if(Orion.UseType(items.axes.join('|'), any, self)){
+                log(3, "Chopping x" +x +" y" +y);
+                Orion.WaitTargetTile('tree', x, y, 0);
+                Orion.Wait('useitemdelay');
+                return true;
+            }
+        }
+    },
+
+    // grab an axe from pouch in open secure container
+    grabAxe: function(){
+        if(Orion.UseType(items.pouch, any, 'secure')){
+            if(Orion.WaitForContainerGump()){
+                Orion.Wait('useitemdelay');
+                if(Orion.MoveItemType(items.axes.join('|'), any, lastcontainer, 0, backpack)){
+                    log(3, "moving axe to backpack");
+                    Orion.Wait('useitemdelay');
+                } else {
+                    log(1, "Out of axes, paused");
+                    Orion.PauseScript();
+                }
+            } else {
+                log(3, "unable to open axe container");
+            }
+        } else {
+            log(1, "No axe containers, paused");
+            Orion.PauseScript();
+        }
+    },
+
+    // turn logs into boards
+    logs2boards: function(){
+        log(2, "logs2boards");
+        Orion.FindType(items.logs, any, backpack)
+            .forEach(function(log){ AAA.useAxe(log) });
+    },
+
+    // move harvested goods to target container
+    moveHarvest: function(toContainer){
+        var items = harvestTable.map(function(item){ return item.type }).join('|');
+        Orion.FindType(items, any, backpack)
+            .forEach(function(item){
+                log(3, "moving " +item +" to " +toContainer);
+                Orion.MoveItem(item, 0, toContainer);
+                Orion.Wait('useitemdelay') });
+    },
+
+    // walk to and open secure container
+    openSecure: function(){
+        var secure = Orion.FindObject('secure');
+        AAA.walkTo(secure);
+        if(Orion.OpenContainer(secure.Serial())){
+            log(3, "secure opened");
+            Orion.Wait('useitemdelay');
+        } else {
+            log(3, "unable to open secure");
+        }
+    },
+
+    // open beetles backpack
+    openbeetle: function(){
+        if(beetle.Distance() < 3){
+            Orion.RequestContextMenu('beetle');
+            Orion.WaitContextMenuID('beetle', 508);
+            if(Orion.WaitForContainerGump()){
+                log(3, "opened beetles pack");
+                return true;
+            } else {
+                log(3, "could not open beetles pack");
+                return false;
+            }
+        } else {
+            log(3, "beetle out of range");
+            return false;
+        }
+    },
+
+    // take actions based on weight
+    checkWeight: function(){
+        var items = harvestTable.map(function(item){ return item.type }).join('|');
+        if(Player.Weight('%') > 90){
+            AAA.logs2boards();
+            if(Player.Weight('%') > 70 && beetle && beetle.Distance() < 3 && AAA.getbeetleSpace() > Orion.Count(items)){
+                log(2, "moving boards to " +beetle.Name());
+                Orion.FindType('0x1BD7', any, backpack)
+                    .forEach(function(board){
+                        log(3, "moving " +board +" to " +beetle.Name());
+                        Orion.MoveItem(board, 0, 'beetle');
+                        Orion.Wait('moveitemdelay') })
+            } else if(Player.Weight('%') > 70){
+                log(2, "opening secure container");
+                AAA.openSecure();
+                var secure = Orion.FindObject('secure');
+                if(secure && secure.Distance() < 3){
+                    log(2, "moving goods to secure");
+                    AAA.moveHarvest(secure.Serial());
+                }
+                if(beetle && beetle.Distance() < 3){
+                    AAA.openbeetle();
+                    Orion.FindType(items, any, 'beetle')
+                        .forEach(function(item){
+                            log(3, "Moving " +item +" from pack beetle to secure");
+                            Orion.MoveItem(item, 0, 'secure');
+                            Orion.Wait('moveitemdelay') });
+                }
+                AAA.walkTo(currentTree.x, currentTree.y);
+            }
+        }
+    },
+
+    // walkto coordinate or a location
+    walkTo: function(x, y){
+        if(!Number(y)){ // object past as target destination
+            log(2, "Walking to " +x.Name());
+            Orion.Exec('walkWatch', true);
+            if(Orion.WalkTo(x.X(), x.Y(), x.Z(), 2, 255, walkRun())){
+                log(3, "arrived");
+                Orion.Wait(100);
+            } else
+                log(3, "could not reach destination");
+        } else { // coordinates past as target destination
+            log(2, "Walking to: x" +x +" y" +y);
+            Orion.Exec('walkWatch', true);
+            if(Orion.WalkTo(x, y, Player.Z(), 2, 255, walkRun())){
+                log(3, "arrived");
+                Orion.Wait(100);
+            } else
+                log(3, "could not reach destination");
+        }
+    },
+
+    // make a hatchet with tinkering skills
+    makeAxe: function (){
+        if(Orion.Count(items['ingots']) < 20) return false;
+        while(Orion.Count(items.axes, any, backpack) < 1){
+            if(Orion.UseType(items.tinkTool, any, backpack)){
+                if(Orion.Count(items.tinkTool, any, backpack) < 2){
+                    log(2, "Making tinker tools");
+                    var button = 11;
+                } else {
+                    log(2, "Making a hatchet");
+                    var button = 12;
+                }
+                Orion.WaitGump(Orion.CreateGumpHook(9003));
+                Orion.WaitGump(Orion.CreateGumpHook(button));
+                Orion.WaitGump(Orion.CreateGumpHook(0));
+                Orion.Wait(3000);
+                Orion.CancelWaitGump();
+            }
+        }
+    },
+
+    // load and return trees array
+    findTrees: function(){
+        var trees = Orion.GetTilesInRect('tree', Player.X()-24, Player.Y()-24, Player.X()+24, Player.Y()+24)
+            //make sure tree can be reached
+            .filter(function(tree){ return isReachable(tree) })
+            //remove trees found in tree history array
+            .filter(function (tree){
+                var foundInHistory = history.some(function(hTree){ return hTree.x === tree.X() && hTree.y === tree.Y() });
+                return !foundInHistory })
+            //remove trees beyond maxDistance from secure container
+            .filter(function(tree){
+                return distance(tree, Orion.FindObject(Orion.RegRead('secure'))) < Orion.RegRead('maxDistance') })
+            //map values to be saved for later use
+            .map(function(tree){
+                return {
+                    x   : tree.X(),
+                    y   : tree.Y(),
+                    color: '0xFFFF',
+                    timer: 0
+                }});
+        log(3, "findTrees found " +trees.length +" items");
+        // colorize trees
+        trees.forEach(function(tree){ 
+            Orion.AddHighlightArea([tree.x, tree.y].toString(), -1, 'pos', color.green.light, 0, 0, 'static', tree.x, tree.y) 
+        });
+        return trees;
+    },
+
+    // return number of axes held/carried
+    countAxes: function(){
+        return Orion.FindType(items.axes.join('|'), any, self).length;
+    },
+
+    // calculate time difference in minutes
+    timeDiffInMinutes: function (lastTime){
+        var now = new Date();
+        var diffInMilliseconds = now.getTime() - lastTime;
+        return Math.floor(diffInMilliseconds / (1000 * 60)); // Convert to minutes
+    }
+};

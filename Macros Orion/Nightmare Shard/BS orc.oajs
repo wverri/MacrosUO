@@ -1,0 +1,74 @@
+var bauBS = '0x4000A90D';
+var ingotsUsed = 0;
+var goldAcquired = 0;
+var goldStart = Player.Gold();
+var startTime = Date.now();
+
+function updateReport() {
+    var currentTime = Date.now();
+    var elapsedTime = ((currentTime - startTime) / 1000).toFixed(2); // Tempo em segundos
+    TextWindow.Open();
+    var reportText = "Ingots Utilizados: " + ingotsUsed + "\n" +
+                     "Gold Adquirido: " + goldAcquired + "\n" +
+                     "Tempo de Execução: " + elapsedTime + " segundos";
+    TextWindow.Print(reportText);
+}
+
+function depositItems() {
+    Orion.MoveItemType(0x0EED, 0xFFFF, 'backpack', 0, Player.BankSerial());
+	Orion.Wait(500);
+	goldAcquired = Player.Gold() - goldStart;
+	Orion.MoveItemType(0x1BEF, 0x0000, 'backpack', 0, bauBS);
+	Orion.Wait(500);
+}
+
+function withdrawIngots() {
+	if (Player.Weight() > 100) {
+		Orion.Print("Peso acima do permitido.");
+		Orion.PauseScript();
+	}
+    Orion.MoveItemType(0x1BEF, 0x0000, bauBS, 500, 'backpack');
+    Orion.Wait(500);
+}
+
+function craftAndSell() {
+    var ferro = Orion.FindType(0x1BEF, 0x0000, 'backpack');
+    while (ferro[0] != null && Orion.FindObject(ferro[0]).Count() > 25) {
+        for (var i = 0; i < 4; i++) {
+            if (ferro[0] == null) { break; }
+            Orion.UseObject(ferro[0]);
+            if (Orion.WaitForMenu(1000)) {
+                const menu0 = Orion.GetMenu('last');
+                if (menu0 !== null && menu0.Name() === "Blacksmith") {
+                    menu0.Select('Iron Mace (6 iron ingots)');
+                    Orion.Wait(7000);
+                    ingotsUsed += 6;
+                }
+            }
+        }
+        Orion.UseObject('0x00028660');
+        Orion.Say('sell');
+        Orion.Wait(1000);
+    }
+}
+
+function BS() {
+    while (true) {
+        Orion.WalkTo(2176, 1356, 0, 0, 1);
+        Orion.Wait(500);
+        Orion.Say("Bank");
+        Orion.Wait(500);
+        Orion.Boxhack(Player.BankSerial());
+        Orion.UseObject(bauBS);
+        Orion.Wait(500);
+
+        depositItems();
+        withdrawIngots();
+        updateReport();
+
+        Orion.WalkTo(2179, 1369, 0, 0, 1);
+        Orion.Wait(500);
+        craftAndSell();
+        Orion.Wait(10000);
+    }
+}

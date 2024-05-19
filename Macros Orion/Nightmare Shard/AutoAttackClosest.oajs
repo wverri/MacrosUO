@@ -1,0 +1,15 @@
+function attackClosest()
+{
+	Orion.IgnoreReset();
+	Orion.Ignore(self);
+	while (true)
+	{
+		var enemy = Orion.FindType("any", -1, "ground", "mobile | near | ignorefriends", "30", "gray | criminal | enemy | red");
+		var obj = Orion.FindObject(enemy);
+		Orion.Wait(50);
+		if (obj != null) {
+			Orion.Attack(enemy);
+			Orion.WalkTo(obj.X(), obj.Y(), obj.Z(), 1);
+		}
+	}
+}

@@ -1,0 +1,6 @@
+function depositItems() {
+	while (true) {
+		Orion.MoveItemType(0x1BEF, 0xFFFF, 'ground', 0, Player.BankSerial());
+		Orion.Wait(500);
+	}
+}

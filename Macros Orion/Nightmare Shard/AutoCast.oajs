@@ -1,0 +1,9 @@
+function GeneratedScript_160231()
+{
+	while(true){
+	Orion.Cast('63');
+	if (Orion.WaitForTarget(1000))
+		Orion.TargetTile('any', 5772, 3045, 15);
+	Orion.Wait(11000)
+	}
+}

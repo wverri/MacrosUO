@@ -1,0 +1,35 @@
+function cortaCorpo() {
+
+    Orion.ClearJournal();
+
+     // Verifica se a arma cortante está selecionada
+     if (!Orion.FindObject('armaC')) {
+         Orion.Print('Selecione a arma cortante');
+         Orion.AddObject('armaC');
+         while (Orion.HaveTarget()) {
+             Orion.Wait(20);
+         }
+     }
+    
+    while (true) {
+        // Busca por corpos no chão
+        var list = Orion.FindType('0x2006|0x0ECA|0x0ECB|0x0ECC|0x0ECD|0x0ECE|0x0ECF|0x0ED0|0x0ED1|0x0ED2', '-1', 'ground', 'fast', '2');
+        for (var i = 0; i < list.length; i++) {
+
+            Orion.WaitTargetObject(list[i]);
+            Orion.UseObject(Orion.FindObject('armaC').Serial());
+            Orion.Wait(300);
+
+            // Verifica se o corte foi bem-sucedido
+            if (Orion.InJournal('You can')) {
+                Orion.Print('Selecione a arma cortante');
+                Orion.AddObject('armaC');
+                while (Orion.HaveTarget()) {
+                    Orion.Wait(20);
+                }
+            }
+            Orion.UseObject(list[i]);
+            Orion.Ignore(list[i]);
+        }
+    }
+}

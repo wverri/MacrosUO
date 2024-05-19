@@ -1,0 +1,118 @@
+function attackClosestRailReversed() {
+    Orion.IgnoreReset();
+    Orion.Ignore(self);
+
+    var route = [
+        { x: 1144, y: 2748 },
+        { x: 1171, y: 2748 },
+        { x: 1171, y: 2772 },
+        { x: 1144, y: 2776 },
+        { x: 1124, y: 2804 },
+        { x: 1161, y: 2804 },
+        { x: 1199, y: 2800 },
+        { x: 1190, y: 2775 },
+        { x: 1153, y: 2836 },
+        { x: 1123, y: 2838 },
+        { x: 1129, y: 2864 },
+        { x: 1165, y: 2864 },
+        { x: 1173, y: 2887 },
+        { x: 1153, y: 2905 },
+        { x: 1184, y: 2910 },
+        { x: 1184, y: 2934 },
+        { x: 1162, y: 2934 },
+        { x: 1140, y: 2934 },
+        { x: 1124, y: 2961 },
+        { x: 1110, y: 2988 },
+        { x: 1142, y: 2988 },
+        { x: 1160, y: 2966 },
+        { x: 1187, y: 2970 },
+        { x: 1215, y: 2970 },
+        { x: 1228, y: 2942 }
+    ];
+    var currentRouteIndex = 0;
+    var routeDirection = 1; // 1 for forward, -1 for backward
+
+    // Verifica se a arma cortante está selecionada
+    if (!Orion.FindObject('armaC')) {
+        Orion.Print('Selecione a arma cortante');
+        Orion.AddObject('armaC');
+        while (Orion.HaveTarget()) {
+            Orion.Wait(20);
+        }
+    }
+
+    while (true) {
+        if (Player.Dead()) {
+            // If the character is dead or as a ghost, execute the resurrection function
+            Ress();
+            Orion.Wait(180000); // Wait 3 minutes to resurrect
+            continue; // Skip to the next iteration of the loop
+        }
+
+        var enemy = Orion.FindType("any", -1, "ground", "mobile | near | ignorefriends", "30", "gray | criminal | enemy | red");
+        var obj = Orion.FindObject(enemy);
+        Orion.Wait(50);
+
+        if (obj != null) {
+            Orion.Attack(enemy);
+            while (obj.Exists()) {
+                if (Orion.GetDistance(obj) > 1) {
+                    Orion.WalkTo(obj.X(), obj.Y(), obj.Z(), 1);
+                    Orion.Attack(enemy);
+                } else {
+                    Orion.Attack(enemy);
+                }
+            }
+            cortaCorpo();
+            Orion.Wait(4000);
+        } else {
+            // If there are no nearby enemies, walk to the next coordinate of the route
+            var nextCoord = route[currentRouteIndex];
+            Orion.WalkTo(nextCoord.x, nextCoord.y, 0, 0);
+
+            // Advance to the next coordinate of the route (cycle)
+            currentRouteIndex += routeDirection;
+            if (currentRouteIndex >= route.length || currentRouteIndex < 0) {
+                routeDirection *= -1; // Reverse the direction
+                currentRouteIndex += routeDirection * 2; // Adjust index to stay within bounds
+            }
+        }
+    }
+}
+
+function Ress() {
+    Orion.HelpGump();
+    if (Orion.WaitForGump(1000)) {
+        var gump0 = Orion.GetGump('last');
+        if ((gump0 !== null) && (!gump0.Replayed()) && (gump0.ID() === '0x0000040E')) {
+            gump0.Select(Orion.CreateGumpHook(2));
+            Orion.Wait(100);
+        }
+    }
+}
+
+function cortaCorpo() {
+
+        Orion.ClearJournal();
+
+        // Busca por corpos no chão
+        var list = Orion.FindType('0x2006|0x0ECA|0x0ECB|0x0ECC|0x0ECD|0x0ECE|0x0ECF|0x0ED0|0x0ED1|0x0ED2', '-1', 'ground', 'fast', '2');
+        for (var i = 0; i < list.length; i++) {
+
+            Orion.WaitTargetObject(list[i]);
+            Orion.UseObject(Orion.FindObject('armaC').Serial());
+            Orion.Wait(300);
+
+            // Verifica se o corte foi bem-sucedido
+            if (Orion.InJournal('You can')) {
+                Orion.Print('Selecione a arma cortante');
+                Orion.AddObject('armaC');
+                while (Orion.HaveTarget()) {
+                    Orion.Wait(20);
+                }
+            }
+            Orion.UseObject(list[i]);
+            Orion.Ignore(list[i]);
+        }
+}
+
