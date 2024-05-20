@@ -1,0 +1,37 @@
+def check_gump_elements(gumpid, elements_to_check):
+    return all(InGump(gumpid, element) for element in elements_to_check)
+
+def stop_if_elements_found(gumpid, element_combinations):
+    for elements in element_combinations:
+        if check_gump_elements(gumpid, elements):
+            Stop()
+
+gumpid = 0x9bade6ea
+
+while True:
+    Pause(500)
+
+    #if GumpExists(0x9bade6ea):
+    #    CloseGump(0x9bade6ea)
+        
+    WaitForContext(0xd308, 2, 2000)
+    WaitForGump(0x9bade6ea, 2000)
+
+    element_combinations = [
+        [20, 'golden'],
+        [10, 'agapite'],
+        [15, 'agapite'],
+        [20, 'exceptional', 'dull'],
+        [10, 'exceptional', 'shadow'],
+        [15, 'exceptional', 'shadow'],
+        ['large', 10, 'ringmail', 'shadow'],
+        ['large', 10, 'bardiche', 'shadow'],
+        ['large', 15, 'ringmail', 'shadow'],
+        ['large', 15, 'bardiche', 'shadow'],
+        ['large', 20, 'platemail', 'iron'],
+        ['large', 20, 'ringmail', 'dull'],
+        ['large', 20, 'bardiche', 'dull'],
+        ['large', 20, 'exceptional', 'ringmail', 'iron'],
+        ['large', 20, 'exceptional', 'bardiche', 'iron']
+    ]
+    stop_if_elements_found(0x9bade6ea, element_combinations)
