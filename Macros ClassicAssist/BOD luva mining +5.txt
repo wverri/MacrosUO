@@ -16,30 +16,30 @@ gumpid_large = 0xbe0dad1e
 while True:
     Pause(500)
 
-    if GumpExists(gumpid_small):
-        CloseGump(gumpid_small)
+    #if GumpExists(gumpid_small):
+    #    CloseGump(gumpid_small)
 
-    if GumpExists(gumpid_large):
-        CloseGump(gumpid_large)
+    #if GumpExists(gumpid_large):
+    #    CloseGump(gumpid_large)
         
     WaitForContext(0xd308, 2, 2000)
-    WaitForGump('any', 2000)
+    WaitForGump(1000)
 
     element_combinations = [
-        [20, 'golden'],
-        [10, 'agapite'],
-        [15, 'agapite'],
-        [20, 'exceptional', 'dull'],
-        [10, 'exceptional', 'shadow'],
-        [15, 'exceptional', 'shadow'],
-        ['large', 10, 'ringmail', 'shadow'],
-        ['large', 10, 'bardiche', 'shadow'],
-        ['large', 15, 'ringmail', 'shadow'],
-        ['large', 15, 'bardiche', 'shadow'],
-        ['large', 20, 'platemail', 'iron'],
-        ['large', 20, 'ringmail', 'dull'],
-        ['large', 20, 'bardiche', 'dull'],
-        ['large', 20, 'exceptional', 'ringmail', 'iron'],
-        ['large', 20, 'exceptional', 'bardiche', 'iron']
+        ['20', 'golden'],
+        ['10', 'agapite'],
+        ['15', 'agapite'],
+        ['20', 'exceptional', 'dull'],
+        ['10', 'exceptional', 'shadow'],
+        ['15', 'exceptional', 'shadow'],
+        ['large', '10', 'ringmail', 'shadow'],
+        ['large', '10', 'bardiche', 'shadow'],
+        ['large', '15', 'ringmail', 'shadow'],
+        ['large', '15', 'bardiche', 'shadow'],
+        ['large', '20', 'platemail', 'iron'],
+        ['large', '20', 'ringmail', 'dull'],
+        ['large', '20', 'bardiche', 'dull'],
+        ['large', '20', 'exceptional', 'ringmail'],
+        ['large', '20', 'exceptional', 'bardiche']
     ]
     stop_if_elements_found(gumpid_small, element_combinations)

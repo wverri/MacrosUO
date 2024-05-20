@@ -16,14 +16,14 @@ gumpid_large = 0xbe0dad1e
 while True:
     Pause(500)
 
-    if GumpExists(gumpid_small):
-        CloseGump(gumpid_small)
+    #if GumpExists(gumpid_small):
+    #    CloseGump(gumpid_small)
 
-    if GumpExists(gumpid_large):
-        CloseGump(gumpid_large)
+    #if GumpExists(gumpid_large):
+    #    CloseGump(gumpid_large)
         
     WaitForContext(0xd308, 2, 2000)
-    WaitForGump('any', 2000)
+    WaitForGump(1000)
 
     element_combinations = [
         # Level 8
