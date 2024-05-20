@@ -1,0 +1,26 @@
+function useBandages() {
+    function wait() {
+        Orion.ClearJournal();
+        while (!Orion.InJournal('You finish applying the bandages')) {
+            Orion.Wait(100);
+            if (Orion.InJournal('You apply the bandages, but they barely help.')) {
+                return;
+            }
+            if (Orion.Timer("bands") > 11000) {
+                return;
+            }
+        }
+        return;
+    }
+
+    while (true) {
+        if (Player.Hits() < Player.MaxHits()) {
+            Orion.BandageSelf();
+            Orion.SetTimer("bands", 0);
+            wait();
+        }
+        Orion.Wait(1000); // Espera 1 segundo antes de verificar novamente
+    }
+}
+
+useBandages();

@@ -1,0 +1,129 @@
+// Configurações Iniciais
+var forjaX = 2564, forjaY = 490, forjaZ = 0;
+var typeOres = '0x19B9|0x19B8|0x19B7|0x19BA', typeLingots = '0x1BEF|0x1BF5|0x1BE3|0x1BE9';
+var pickaxe = '0x0E85';
+var maxWeight = 600; // Peso Máximo
+
+function guardar() {
+    while (Orion.FindType('0x19b9', 'any', 'backpack').length > 0) {
+        var log = Orion.FindType('0x19b9', 'any', 'backpack')[0];
+        if (Orion.FindType('0x151', 'any', 'self').length > 0) {
+            var packhorse = Orion.FindType('0x151', 'any', 'self')[0];
+            if (packhorse.Properties().includes('Stones') && parseInt(packhorse.Properties().match(/Stones: (\d+)/)[1]) < 2300) {
+                Orion.MoveItem(log, packhorse);
+            } else {
+                Orion.Ignore(packhorse);
+            }
+        } else {
+            Orion.Print("Todos os cavalos cheios!");
+            Orion.TerminateScript();
+        }
+    }
+}
+
+function Mine() {
+    Orion.Print("Minerar");
+    Orion.ClearJournal();
+    while (!Orion.InJournal('There is no metal here to mine.')) {
+        if (Orion.FindType(pickaxe, 'any', 'backpack').length === 0) {
+            FazerPicareta();
+        }
+        if (Orion.Weight() > maxWeight) {
+            SmeltOre();
+        }
+        Orion.UseType(pickaxe);
+        Orion.WaitForTarget(1000);
+        //Orion.TargetTileRelative('any', 0, 0, 0);
+        let tile = Orion.GetTilesInRect('static', 1, Player.X(), Player.Y(), 0);
+            if (tile.length > 0) {
+                Orion.TargetTile(tile[0].X, tile[0].Y, tile[0].Z);
+            }
+        Orion.Wait(200);
+        if (Orion.InJournal('There is no metal here to mine.')) {
+            break;
+        }
+        Orion.Wait(1000);
+        if (Orion.InJournal('worn out your tool!')) {
+            Orion.UseType(pickaxe);
+            Orion.WaitForTarget(1000);
+            //Orion.TargetTileRelative('any', 0, 0, 0);
+            let tile = Orion.GetTilesInRect('static', 1, Player.X(), Player.Y(), 0);
+            if (tile.length > 0) {
+                Orion.TargetTile(tile[0].X, tile[0].Y, tile[0].Z);
+            }
+            Orion.Wait(1200);
+        }
+    }
+    Orion.Print("Guardando");
+    //guardar();
+}
+
+var rand = ['East', 'West', 'North', 'South', 'Northeast', 'Southeast', 'Southwest', 'Northwest'];
+
+
+function SmeltOre() {
+    Andar(forjaX, forjaY); // Localização da forja
+
+    while (Orion.FindType('0x19b9', 'any', 'backpack').length > 0) {
+        var item = Orion.FindType('0x19b9', 'any', 'backpack')[0];
+        if (!item) continue;
+
+        // Nunca Smeltar Dwarven, Obsidian, Xormite, Zinc, or Coal
+        if ([1788, 1986, 1991, 2500, 1175].includes(Orion.Hue(item))) {
+            Orion.Ignore(item);
+            continue;
+        }
+
+        Orion.UseObject(item);
+        Orion.WaitForTarget(2000);
+        Orion.TargetXYZ(forjaX, forjaY, forjaZ, 4017); // Target da Forja
+        Orion.Wait(1000);
+    }
+
+    while (Orion.FindType('0x19b8', 'any', 'backpack').length > 0) { // ore com gráfico menor
+        var item = Orion.FindType('0x19b8', 'any', 'backpack')[0];
+        if (!item) continue;
+
+        // Nunca Smeltar Dwarven, Obsidian, Xormite, Zinc, or Coal
+        if ([1788, 1986, 1991, 2500, 1175].includes(Orion.Hue(item))) {
+            Orion.Ignore(item);
+            continue;
+        }
+
+        Orion.UseObject(item);
+        Orion.WaitForTarget(2000);
+        Orion.TargetXYZ(forjaX, forjaY, forjaZ, 4017);
+        Orion.Wait(1000);
+    }
+}
+
+function FazerPicareta() {
+    Orion.ClearJournal();
+
+    if (Orion.FindType('0x1EB8', 'any', 'backpack').length > 0) {
+        var tinkerTools = Orion.FindType('0x1EB8', 'any', 'backpack')[0];
+        Orion.UseObject(tinkerTools); // Tinker Tools
+        Orion.WaitForGump(0x38920abd, 5000);
+        Orion.ReplyGump(0x38920abd, 29);
+        Orion.WaitForGump(0x38920abd, 5000);
+        Orion.ReplyGump(0x38920abd, 100);
+        Orion.WaitForGump(0x38920abd, 5000);
+        Orion.ReplyGump(0x38920abd, 0); // Close tools
+    } else {
+        Orion.Print("Acabaram os Tinker Tools");
+        Orion.TerminateScript();
+    }
+}
+
+Orion.IgnoreReset();
+while (true) {
+    Mine();
+    var direction = rand[Math.floor(Math.random() * rand.length)];
+    Orion.Run(direction);
+    Orion.Run(Orion.Direction('self'));
+    Orion.Run(Orion.Direction('self'));
+    Orion.Run(Orion.Direction('self'));
+    Orion.Run(Orion.Direction('self'));
+    Orion.Run(Orion.Direction('self'));
+    Orion.Run(Orion.Direction('self'));
+}
