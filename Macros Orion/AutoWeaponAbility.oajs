@@ -1,6 +1,6 @@
 function autoWeaponAbility() {
-	while(true) {
-	    if (!Orion.AbilityStatus('Primary') && Player.Mana('self') > 20) {
+	while (true) {
+	    if (!Orion.AbilityStatus('Primary') && Player.Mana() > 20) {
 	        Orion.UseAbility('Primary');
 	        Orion.Say('[set4');
 	        Orion.Wait(100);
@@ -8,4 +8,3 @@ function autoWeaponAbility() {
 	    Orion.Wait(500);
 	}
 }
-
