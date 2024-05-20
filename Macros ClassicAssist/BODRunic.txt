@@ -3,19 +3,27 @@ def check_gump_elements(gumpid, elements_to_check):
 
 def stop_if_elements_found(gumpid, element_combinations):
     for elements in element_combinations:
-        if check_gump_elements(gumpid, elements):
+        if 'large' in elements:
+            current_gumpid = gumpid_large
+        else:
+            current_gumpid = gumpid_small
+        if check_gump_elements(current_gumpid, elements):
             Stop()
 
-gumpid = 0x9bade6ea
+gumpid_small = 0x9bade6ea
+gumpid_large = 0xbe0dad1e
 
 while True:
     Pause(500)
 
-    #if GumpExists(0x9bade6ea):
-    #    CloseGump(0x9bade6ea)
+    if GumpExists(gumpid_small):
+        CloseGump(gumpid_small)
+
+    if GumpExists(gumpid_large):
+        CloseGump(gumpid_large)
         
     WaitForContext(0xd308, 2, 2000)
-    WaitForGump(0x9bade6ea, 2000)
+    WaitForGump('any', 2000)
 
     element_combinations = [
         # Level 8
@@ -78,4 +86,4 @@ while True:
         ['large', '20', 'exceptional.', 'ringmail', 'verite'],
         ['large', '20', 'exceptional.', 'bardiche', 'verite']
     ]
-    stop_if_elements_found(0x9bade6ea, element_combinations)
+    stop_if_elements_found(gumpid_small, element_combinations)
