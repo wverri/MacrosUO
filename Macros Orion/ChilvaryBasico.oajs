@@ -1,6 +1,6 @@
 function trainChivalry() {
     while (true) {
-        var skill = Orion.SkillValue('Chivalry');
+        var skill = Orion.SkillValue('Chivalry', 'real');
         var spell;
         var manaRequired;
         var requiresTarget = false;
@@ -30,7 +30,7 @@ function trainChivalry() {
                 Orion.TargetObject(Player.Serial()); // Target self
             }
         } else {
-            while (Player.Mana() < Player.ManaMax()) {
+            while (Player.Mana() < Player.MaxMana()) {
                 Orion.UseSkill('Meditation');
                 Orion.Wait(5000);
             }
