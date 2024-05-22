@@ -1,20 +1,21 @@
 function trainChivalry() {
     while (true) {
-        var skill = Orion.SkillValue('Chivalry', 'real');
+        var skill = Orion.SkillValue('knightship');
         var spell;
         var manaRequired;
         var requiresTarget = false;
 
-        if (skill < 45) {
+
+        if (skill < 450) {
             spell = 'Consecrate Weapon'; // Spell ID: 202
             manaRequired = 10;
-        } else if (skill < 60) {
+        } else if (skill < 600) {
             spell = 'Divine Fury'; // Spell ID: 206
             manaRequired = 15;
-        } else if (skill < 70) {
+        } else if (skill < 700) {
             spell = 'Enemy of One'; // Spell ID: 208
             manaRequired = 20;
-        } else if (skill < 90) {
+        } else if (skill < 900) {
             spell = 'Holy Light'; // Spell ID: 211
             manaRequired = 25;
         } else {
