@@ -1,0 +1,15 @@
+function trainChivalry() {
+    while (true) {
+        if (Player.Mana() > 13) {
+            Orion.Cast('205'); // Cast Chivalry spell
+        } else {
+            while (Player.Mana() < Player.ManaMax()) {
+                Orion.UseSkill('Meditation'); // Use Meditation skill
+                Orion.Wait(5000); // Wait for 5 seconds before checking mana again
+            }
+        }
+        Orion.Wait(1000); // Wait for 1 second before the next iteration
+    }
+}
+
+trainChivalry();
