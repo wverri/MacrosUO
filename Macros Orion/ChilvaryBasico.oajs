@@ -1,6 +1,6 @@
 function trainChivalry() {
     while (true) {
-        var skill = Player.SkillValue('Chivalry');
+        var skill = Orion.SkillValue('Chivalry');
         var spell;
         var manaRequired;
         var requiresTarget = false;
