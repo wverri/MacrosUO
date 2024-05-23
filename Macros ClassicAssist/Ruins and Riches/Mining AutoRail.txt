@@ -111,16 +111,22 @@ def Mine():
     return
     
 def Andar(x, y):
-    print("Andando")
+    HeadMsg("Andando")
     Pathfind(x, y, 0)
     tentativa = 0
     while X('self') != x or Y('self') != y:
         Pause(100)
         tentativa += 1
         if tentativa > 10:
-            Pathfind(x, y, 0)
+            # Tenta desviar de obstáculos
+            HeadMsg("Tentando desviar de obstáculos")
+            Pathfind(x + Random().Next(-1, 2), y + Random().Next(-1, 2), 0)
             tentativa = 0
-        return
+        # Verifica se está preso e tenta se mover em uma direção aleatória
+        if tentativa % 5 == 0:
+            HeadMsg("Verificando se está preso")
+            Pathfind(X('self') + Random().Next(-1, 2), Y('self') + Random().Next(-1, 2), 0)
+    return
 
 def SmeltOre():
     HeadMsg("Indo para a forja")
