@@ -94,9 +94,11 @@ def Mine():
         if not FindType(0xe86, -1, 'backpack'):
             HeadMsg("Criando uma nova picareta")
             FazerPicareta()
-        if Weight() > 550:
+        if Weight() > MaxWeight() - 50:
             HeadMsg("Peso acima do limite, fundindo minério")
+            current_position = (X('self'), Y('self'))
             SmeltOre()
+            Andar(current_position[0], current_position[1])  # Volta ao ponto onde parou
         UseType(0xe86)
         WaitForTarget(1000)
         TargetTileOffsetResource(0, 0, 0)
@@ -171,9 +173,6 @@ def MinerarPontos():
         print(ponto)
         Andar(ponto[0], ponto[1])
         Mine()
-        if Weight() > 550:
-            SmeltOre()
-            Andar(ponto[0], ponto[1])  # Volta ao ponto onde parou
 
 ClearIgnoreList()
 SelecionarForja()
