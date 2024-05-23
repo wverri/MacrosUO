@@ -112,14 +112,29 @@ def Mine():
 def Andar(x, y):
     HeadMsg("Andando")
     Pathfind(x, y, 0)
+    if not Pathfinding():
+        HeadMsg("Destino é intransponível, tentando encontrar um ponto próximo")
+        x, y = EncontrarPontoProximo(x, y)
+        Pathfind(x, y, 0)
+        if not Pathfinding():
+            HeadMsg("Não foi possível encontrar um ponto próximo acessível")
+            return
+
     tentativa = 0
     while X('self') != x or Y('self') != y:
-        Pause(100)
-        tentativa += 1
-        if tentativa > 10:
-            Pathfind(x, y, 0)
-            tentativa = 0
+        while Pathfinding():
+            Pause(50)
+        Pathfind(x, y, 0)
     return
+
+def EncontrarPontoProximo(x, y):
+    for dx in range(-1, 2):
+        for dy in range(-1, 2):
+            if dx == 0 and dy == 0:
+                continue
+            if Pathfind(x + dx, y + dy, 0):
+                return x + dx, y + dy
+    return x, y
 
 def SmeltOre():
     HeadMsg("Indo para a forja")
