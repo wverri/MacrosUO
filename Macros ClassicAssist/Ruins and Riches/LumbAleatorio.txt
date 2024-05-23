@@ -52,7 +52,8 @@ def GetNearestTree():
     for x in range(Engine.Player.X+2, Engine.Player.X+30):
         for y in range(Engine.Player.Y-30, Engine.Player.Y+30):
             statics = Statics.GetStatics(Convert.ChangeType(Engine.Player.Map, int), x, y)
-            
+            if statics is None:
+                continue
             for s in statics:
                 if 'tree' in s.Name:
                 #if treeTypes.Contains(s.ID):

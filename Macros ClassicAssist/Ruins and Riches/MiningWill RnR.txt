@@ -11,6 +11,8 @@ from ClassicAssist.UO import UOMath
 from Assistant import Engine
 from System import Convert
 from System import Random
+clr.AddReference('System.Core')
+clr.ImportExtensions(System.Linq)
 
 # Variáveis de localização
 forja_x = 0
@@ -20,14 +22,19 @@ forja_z = 0
 def GetNearestForge():
     forges = []
     
-    for x in range(Engine.Player.X - 30, Engine.Player.X + 30):
-        for y in range(Engine.Player.Y - 30, Engine.Player.Y + 30):
+    for x in range(Engine.Player.X - 40, Engine.Player.X + 40):
+        for y in range(Engine.Player.Y - 40, Engine.Player.Y + 40):
             statics = Statics.GetStatics(Convert.ChangeType(Engine.Player.Map, int), x, y)
-            
+            if statics is None:
+                continue
             for s in statics:
                 if 'forge' in s.Name.lower():
                     if UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y) > 2:
                         forges.append({'X': s.X, 'Y': s.Y, 'Z': s.Z, 'Distance': UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y)})
+    
+    if not forges:
+        HeadMsg("Não encontrei nenhuma forja")
+        Stop()
     
     nearest_forge = sorted(forges, key=lambda i: i['Distance'])[0]
     return nearest_forge
@@ -82,8 +89,7 @@ def VerificarFome():
 def Mine():
     HeadMsg("Minerar")
     ClearJournal()
-    start_time = Engine.Timer
-    while not InJournal('There is no metal here to mine.') and (Engine.Timer - start_time) < 300000:  # 5 minutos de tempo limite
+    while not InJournal('There is no metal here to mine.'):  # 5 minutos de tempo limite
         VerificarFome()  # Verifica fome durante a mineração
         if not FindType(0xe86, -1, 'backpack'):
             HeadMsg("Criando uma nova picareta")
