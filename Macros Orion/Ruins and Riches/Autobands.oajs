@@ -14,7 +14,7 @@ function useBandages() {
     }
 
     function curePoison() {
-        if (Player.Poisoned() && Orion.SkillValue('knightship') >= 500) {
+        if (Player.Poisoned()) {
             Orion.Cast('Cleanse by Fire');
             Orion.WaitForTarget(5000);
             Orion.TargetObject(Player.Serial());
