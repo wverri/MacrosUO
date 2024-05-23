@@ -60,7 +60,7 @@ def GetNearestTree():
                 	if UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y) > 2:
                 		trees.append({'X': s.X, 'Y': s.Y, 'Z': s.Z, 'ID': s.ID, 'Distance': UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y)})
                 	
-    return trees.OrderBy(lambda i: i['Distance']).FirstOrDefault()
+	return trees.OrderBy(lambda i: i['Distance']).FirstOrDefault()
 
 ClearIgnoreList()
 def Mine(x,y,z,id):
