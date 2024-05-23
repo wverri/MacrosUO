@@ -1,0 +1,176 @@
+# MACRO DE MINER ALEATORIO PARA UOODYSSEY
+# Feito por WillxD
+# Configurado para minerar em Britain, minera e smelta
+# Importante ter TinkerTools na bag para fazer mais picaretas se essas acabarem.
+
+import clr
+import System
+from Assistant import Engine
+from ClassicAssist.UO.Data import Statics
+from ClassicAssist.UO import UOMath
+from Assistant import Engine
+from System import Convert
+from System import Random
+clr.AddReference('System.Core')
+clr.ImportExtensions(System.Linq)
+
+def GetNearestForge():
+    forges = []
+    
+    for x in range(Engine.Player.X - 40, Engine.Player.X + 40):
+        for y in range(Engine.Player.Y - 40, Engine.Player.Y + 40):
+            statics = Statics.GetStatics(Convert.ChangeType(Engine.Player.Map, int), x, y)
+            if statics is None:
+                continue
+            for s in statics:
+                if 'forge' in s.Name.lower():
+                    if UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y) > 2:
+                        forges.append({
+                            'X': s.X, 
+                            'Y': s.Y, 
+                            'Z': s.Z, 
+                            'Distance': UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y),
+                            'Graphic': s.ID  # Adiciona o gráfico da forja
+                        })
+    
+    if not forges:
+        HeadMsg("Não encontrei nenhuma forja, tente executar o macro em outra posição.")
+        Stop()
+    
+    nearest_forge = sorted(forges, key=lambda i: i['Distance'])[0]
+    return nearest_forge
+
+def SelecionarForja():
+    global forja_x, forja_y, forja_z, forja_graphic
+    HeadMsg("Procurando a forja mais próxima")
+    nearest_forge = GetNearestForge()
+    forja_x = nearest_forge['X']
+    forja_y = nearest_forge['Y']
+    forja_z = nearest_forge['Z']
+    forja_graphic = nearest_forge['Graphic']  # Armazena o gráfico da forja
+    HeadMsg("Forja selecionada: X={}, Y={}, Z={}, Graphic={}".format(forja_x, forja_y, forja_z, forja_graphic))
+
+def MapearRegiao():
+    global pontos_mineracao
+    pontos_mineracao = []
+    for x in range(forja_x - 30, forja_x + 30, 6):
+        for y in range(forja_y - 30, forja_y + 30, 6):
+            statics = Statics.GetStatics(Convert.ChangeType(Engine.Player.Map, int), x, y)
+            if statics is None:
+                continue
+            for s in statics:
+                if 'cave floor' in s.Name.lower():
+                    pontos_mineracao.append((x, y))
+    if not pontos_mineracao:
+        HeadMsg("Não encontrei nenhum ponto de mineração, tente executar o macro em outra posição.")
+        Stop()
+
+def VerificarFome():
+    Msg('[myhunger')
+    if InJournal("You are very hungry.", "system"):  
+        UseType(0xc6a) 
+        UseType(0x9b7) ## Cooked Bird 
+        UseType(0x103b) ## Bread loaf, Stale Bread 
+        UseType(0xc6d) ## onion
+        UseType(0xd3a) ## turnip
+        UseType(0xc6a) ## pumpkin
+        UseType(0xc5c) ## watermelon
+        UseType(0xc78) ## carrot
+        UseType(0x98c) ## french bread
+        UseType(0x1608) # chicken leg
+        UseType(0x160a) # chicken leg
+        HeadMsg('Matei a fome :)')
+        ClearJournal()
+    if InJournal("You are very thirsty.", "system"):  
+        UseType(0x98f) 
+        HeadMsg('Aquela gelada!')
+        ClearJournal()
+
+def Mine():
+    HeadMsg("Minerar")
+    ClearJournal()
+    while not InJournal('There is no metal here to mine.'):
+        VerificarFome()
+        if not FindType(0xe86, -1, 'backpack'):
+            HeadMsg("Criando uma nova picareta")
+            FazerPicareta()
+        if Weight() > 550:
+            HeadMsg("Peso acima do limite, fundindo minério")
+            SmeltOre()
+        UseType(0xe86)
+        WaitForTarget(1000)
+        TargetTileOffsetResource(0, 0, 0)
+        Pause(200)
+        if InJournal('There is no metal here to mine.'):
+            HeadMsg("Nenhum metal encontrado aqui")
+            break
+        Pause(1000)
+    HeadMsg("Guardando")
+    return
+
+def Andar(x, y):
+    Pathfind(x, y, 0)
+    tentativa = 0
+    while X('self') != x or Y('self') != y:
+        Pause(100)
+        tentativa += 1
+        if tentativa > 10:
+            Pathfind(x, y, 0)
+            tentativa = 0
+    return
+
+def SmeltOre():
+    HeadMsg("Indo para a forja")
+    Andar(forja_x + 1, forja_y)  # Localização da forja
+    
+    # Verificação de proximidade da forja
+    if abs(X('self') - forja_x) > 1 or abs(Y('self') - forja_y) > 1:
+        HeadMsg("Muito longe da forja, tentando novamente")
+        Andar(forja_x + 1, forja_y)
+    
+    while FindType(0x19b9, 0, "backpack") or FindType(0x19b8, 0, "backpack"):
+        item = Engine.Items.GetItem(GetAlias("found"))
+        if item is None:
+            continue
+
+        # Nunca Smeltar Dwarven, Obsidian, Xormite, Zinc, or Coal
+        if item.Hue == 1788 or item.Hue == 1986 or item.Hue == 1991 or item.Hue == 2500 or item.Hue == 1175:
+            IgnoreObject("found")
+            continue
+
+        UseObject("found")
+        WaitForTarget(2000)
+        TargetXYZ(forja_x, forja_y, forja_z, forja_graphic)  # Target da Forja
+        Pause(1000)
+    return
+
+def FazerPicareta():
+    ClearJournal()
+    if FindType(0x1EB8, 0, "backpack"):
+        HeadMsg("Usando Tinker Tools para criar uma picareta")
+        UseObject("Found")  # Tinker Tools
+        WaitForGump(0x38920abd, 5000)
+        ReplyGump(0x38920abd, 29)
+        WaitForGump(0x38920abd, 5000)
+        ReplyGump(0x38920abd, 100)
+        WaitForGump(0x38920abd, 5000)
+        ReplyGump(0x38920abd, 0)  # Close tools
+    else:
+        HeadMsg("Acabaram os Tinker Tools", "self")
+        Stop()
+    return
+
+def MinerarPontos():
+    global pontos_mineracao
+    for ponto in pontos_mineracao:
+        Andar(ponto[0], ponto[1])
+        Mine()
+        if Weight() > 550:
+            SmeltOre()
+            Andar(ponto[0], ponto[1])  # Volta ao ponto onde parou
+
+ClearIgnoreList()
+SelecionarForja()
+MapearRegiao()
+while True:
+    MinerarPontos()
