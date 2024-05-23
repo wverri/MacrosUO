@@ -17,14 +17,28 @@ forja_x = 0
 forja_y = 0
 forja_z = 0
 
-# Prompt para selecionar a localização da forja
+def GetNearestForge():
+    forges = []
+    
+    for x in range(Engine.Player.X - 30, Engine.Player.X + 30):
+        for y in range(Engine.Player.Y - 30, Engine.Player.Y + 30):
+            statics = Statics.GetStatics(Convert.ChangeType(Engine.Player.Map, int), x, y)
+            
+            for s in statics:
+                if 'forge' in s.Name.lower():
+                    if UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y) > 2:
+                        forges.append({'X': s.X, 'Y': s.Y, 'Z': s.Z, 'Distance': UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y)})
+    
+    nearest_forge = sorted(forges, key=lambda i: i['Distance'])[0]
+    return nearest_forge
+
 def SelecionarForja():
     global forja_x, forja_y, forja_z
-    HeadMsg("Selecione a localização da forja")
-    forja = PromptTarget(-1, -1, True, False)
-    forja_x = X(forja)
-    forja_y = Y(forja)
-    forja_z = Z(forja)
+    HeadMsg("Procurando a forja mais próxima")
+    nearest_forge = GetNearestForge()
+    forja_x = nearest_forge['X']
+    forja_y = nearest_forge['Y']
+    forja_z = nearest_forge['Z']
     HeadMsg("Forja selecionada: X={}, Y={}, Z={}".format(forja_x, forja_y, forja_z))
 
 # Função de guardar em packhorse não habilitada
