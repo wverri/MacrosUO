@@ -107,8 +107,9 @@ def Mine():
         Pause(1000)
     HeadMsg("Guardando")
     return
-
+    
 def Andar(x, y):
+    print("Andando")
     Pathfind(x, y, 0)
     tentativa = 0
     while X('self') != x or Y('self') != y:
@@ -117,7 +118,7 @@ def Andar(x, y):
         if tentativa > 10:
             Pathfind(x, y, 0)
             tentativa = 0
-    return
+        return
 
 def SmeltOre():
     HeadMsg("Indo para a forja")
@@ -141,6 +142,11 @@ def SmeltOre():
         UseObject("found")
         WaitForTarget(2000)
         TargetXYZ(forja_x, forja_y, forja_z, forja_graphic)  # Target da Forja
+        
+        if InJournal("That is too far away"):
+            Andar(forja_x + 1, forja_y)
+            continue
+        
         Pause(1000)
     return
 
@@ -161,8 +167,8 @@ def FazerPicareta():
     return
 
 def MinerarPontos():
-    global pontos_mineracao
     for ponto in pontos_mineracao:
+        print(ponto)
         Andar(ponto[0], ponto[1])
         Mine()
         if Weight() > 550:
@@ -172,5 +178,6 @@ def MinerarPontos():
 ClearIgnoreList()
 SelecionarForja()
 MapearRegiao()
+
 while True:
     MinerarPontos()
