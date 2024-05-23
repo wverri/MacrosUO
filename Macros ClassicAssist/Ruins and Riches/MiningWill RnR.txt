@@ -1,0 +1,156 @@
+# MACRO DE MINER ALEATORIO PARA UOODYSSEY
+# Feito por WillxD
+# Configurado para minerar em Britain, minera e smelta
+# Importante ter TinkerTools na bag para fazer mais picaretas se essas acabarem.
+
+import clr
+import System
+from Assistant import Engine
+from ClassicAssist.UO.Data import Statics
+from ClassicAssist.UO import UOMath
+from Assistant import Engine
+from System import Convert
+from System import Random
+
+# Variáveis de localização
+forja_x = 0
+forja_y = 0
+forja_z = 0
+
+# Prompt para selecionar a localização da forja
+def SelecionarForja():
+    global forja_x, forja_y, forja_z
+    HeadMsg("Selecione a localização da forja")
+    forja = PromptTarget(-1, -1, True, False)
+    forja_x = X(forja)
+    forja_y = Y(forja)
+    forja_z = Z(forja)
+    HeadMsg("Forja selecionada: X={}, Y={}, Z={}".format(forja_x, forja_y, forja_z))
+
+# Função de guardar em packhorse não habilitada
+def guardar():
+    while FindType(0x19b9, -1, 'backpack'):
+        log = GetAlias('found')
+        if FindType(0x151, 2):
+            if PropertyValue[int]('found', 'Stones') < 2300:
+                MoveItem(log, "found")
+            else:
+                IgnoreObject("found")
+        else:
+            HeadMsg("Todos os cavalos cheios!", "self")
+            Stop()
+    return
+
+def VerificarFome():
+    Msg('[myhunger')
+    if InJournal("You are very hungry.", "system"):  
+        ##PlaySound("Bike Horn.wav")
+        UseType(0xc6a) 
+        UseType(0x9b7) ## Cooked Bird 
+        UseType(0x103b) ## Bread loaf, Stale Bread 
+        UseType(0xc6d) ## onion
+        UseType(0xd3a) ## turnip
+        UseType(0xc6a) ## pumpkin
+        UseType(0xc5c) ## watermelon
+        UseType(0xc78) ## carrot
+        UseType(0x98c) ## french bread
+        UseType(0x1608) # chicken leg
+        UseType(0x160a) # chicken leg
+        HeadMsg('Matei a fome :)')
+        ClearJournal()
+    if InJournal("You are very thirsty.", "system"):  
+        ##PlaySound("Bike Horn.wav")
+        #UseObject(0x402189ea)
+        UseType(0x98f) 
+        HeadMsg('Aquela gelada!')
+        ClearJournal()
+
+def Mine():
+    HeadMsg("Minerar")
+    ClearJournal()
+    start_time = Engine.Timer
+    while not InJournal('There is no metal here to mine.') and (Engine.Timer - start_time) < 300000:  # 5 minutos de tempo limite
+        VerificarFome()  # Verifica fome durante a mineração
+        if not FindType(0xe86, -1, 'backpack'):
+            HeadMsg("Criando uma nova picareta")
+            FazerPicareta()
+        if Weight() > 550:
+            HeadMsg("Peso acima do limite, fundindo minério")
+            SmeltOre()
+        UseType(0xe86)
+        WaitForTarget(1000)
+        TargetTileOffsetResource(0, 0, 0)
+        Pause(200)
+        if InJournal('There is no metal here to mine.'):
+            HeadMsg("Nenhum metal encontrado aqui")
+            break
+        Pause(1000)
+    HeadMsg("Guardando")
+    # guardar()
+    return
+
+rand = ['East', 'West', 'North', 'South', 'Northeast', 'Southeast', 'Southwest', 'Northwest']
+rando = Random()
+
+def Andar(x, y):
+    Pathfind(x, y, 0)
+    tentativa = 0
+    while X('self') != x or Y('self') != y:
+        Pause(100)
+        tentativa += 1
+        if tentativa > 10:
+            Pathfind(x, y, 0)
+            tentativa = 0
+    return
+
+def SmeltOre():
+    HeadMsg("Indo para a forja")
+    Andar(forja_x + 1, forja_y)  # Localização da forja
+    
+    # Verificação de proximidade da forja
+    if abs(X('self') - forja_x) > 1 or abs(Y('self') - forja_y) > 1:
+        HeadMsg("Muito longe da forja, tentando novamente")
+        Andar(forja_x + 1, forja_y)
+    
+    while FindType(0x19b9, 0, "backpack") or FindType(0x19b8, 0, "backpack"):
+        item = Engine.Items.GetItem(GetAlias("found"))
+        if item is None:
+            continue
+
+        # Nunca Smeltar Dwarven, Obsidian, Xormite, Zinc, or Coal
+        if item.Hue == 1788 or item.Hue == 1986 or item.Hue == 1991 or item.Hue == 2500 or item.Hue == 1175:
+            IgnoreObject("found")
+            continue
+
+        UseObject("found")
+        WaitForTarget(2000)
+        TargetXYZ(forja_x, forja_y, forja_z)  # Target da Forja
+        Pause(1000)
+    return
+
+def FazerPicareta():
+    ClearJournal()
+    if FindType(0x1EB8, 0, "backpack"):
+        HeadMsg("Usando Tinker Tools para criar uma picareta")
+        UseObject("Found")  # Tinker Tools
+        WaitForGump(0x38920abd, 5000)
+        ReplyGump(0x38920abd, 29)
+        WaitForGump(0x38920abd, 5000)
+        ReplyGump(0x38920abd, 100)
+        WaitForGump(0x38920abd, 5000)
+        ReplyGump(0x38920abd, 0)  # Close tools
+    else:
+        HeadMsg("Acabaram os Tinker Tools", "self")
+        Stop()
+    return
+
+def RunMultipleTimes(direction, times):
+    for _ in range(times):
+        Run(direction)
+
+ClearIgnoreList()
+SelecionarForja()
+while True:
+    Mine()
+    direction = rand[rando.Next(8)]
+    RunMultipleTimes(direction, 6)
