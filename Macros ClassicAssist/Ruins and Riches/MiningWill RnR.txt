@@ -1,5 +1,3 @@
-
-
 # MACRO DE MINER ALEATORIO PARA UOODYSSEY
 # Feito por WillxD
 # Configurado para minerar em Britain, minera e smelta
@@ -14,8 +12,21 @@ from Assistant import Engine
 from System import Convert
 from System import Random
 
-# PromptAlias('Packlhama')
-# SetAlias('Packlhama', 0x0031f1a)
+# Variáveis de localização
+forja_x = 0
+forja_y = 0
+forja_z = 0
+
+# Prompt para selecionar a localização da forja
+def SelecionarForja():
+    global forja_x, forja_y, forja_z
+    HeadMsg("Selecione a localização da forja")
+    forja = PromptTarget(-1, -1, True, False)
+    forja_x = X(forja)
+    forja_y = Y(forja)
+    forja_z = Z(forja)
+    HeadMsg("Forja selecionada: X={}, Y={}, Z={}".format(forja_x, forja_y, forja_z))
+
 # Função de guardar em packhorse não habilitada
 def guardar():
     while FindType(0x19b9, -1, 'backpack'):
@@ -33,100 +44,88 @@ def guardar():
 def Mine():
     HeadMsg("Minerar")
     ClearJournal()
-    while not InJournal('There is no metal here to mine.'):
-        if not FindType(0xe86,-1,'backpack'):
+    start_time = Engine.Timer
+    while not InJournal('There is no metal here to mine.') and (Engine.Timer - start_time) < 60000:  # 1 minuto de tempo limite
+        if not FindType(0xe86, -1, 'backpack'):
+            HeadMsg("Criando uma nova picareta")
             FazerPicareta()
-        if (Weight() > 550):
+        if Weight() > 550:
+            HeadMsg("Peso acima do limite, fundindo minério")
             SmeltOre()
         UseType(0xe86)
         WaitForTarget(1000)
         TargetTileOffsetResource(0, 0, 0)
         Pause(200)
         if InJournal('There is no metal here to mine.'):
+            HeadMsg("Nenhum metal encontrado aqui")
             break
         Pause(1000)
-        if InJournal('worn out your tool!'):
-            #FazerPicareta()
-            UseType(0xe86)
-            WaitForTarget(1000)
-            TargetTileOffsetResource(0, 0, 0)
-            Pause(1200)
     HeadMsg("Guardando")
-    #guardar()
-    
+    # guardar()
     return
 
-rand = [ 'East', 'West', 'North', 'South', 'Northeast', 'Southeast', 'Southwest', 'Northwest' ]
+rand = ['East', 'West', 'North', 'South', 'Northeast', 'Southeast', 'Southwest', 'Northwest']
 rando = Random()
 
-def Andar(x,y):
-    Pathfind(x,y,0)
+def Andar(x, y):
+    Pathfind(x, y, 0)
     tentativa = 0
     while X('self') != x or Y('self') != y:
         Pause(100)
         tentativa += 1
         if tentativa > 10:
-            Pathfind(x,y,0)
+            Pathfind(x, y, 0)
             tentativa = 0
     return
 
 def SmeltOre():
-    Andar(3115,3905) # Localização da forja
-        
-    while FindType(0x19b9, 0, "backpack"):
-        item = Engine.Items.GetItem(GetAlias("found"))
-        if item == None: continue
-
-        # Nunca Smeltar Dwarven, Obsidian, Xormite, Zinc, or Coal
-        if item.Hue == 1788 or item.Hue == 1986 or item.Hue == 1991 or item.Hue == 2500 or item.Hue == 1175:
-            IgnoreObject("found")
-            continue
-
-        UseObject("found")
-        WaitForTarget(2000)
-        TargetXYZ(3114, 3905, 0, 4017) # Target da Forja
-        Pause(1000)
-        
-    while FindType(0x19b8, 0, "backpack"): # ore com gráfico menor
-        item = Engine.Items.GetItem(GetAlias("found"))
-        if item == None: continue
-
-        # Nunca Smeltar Dwarven, Obsidian, Xormite, Zinc, or Coal
-        if item.Hue == 1788 or item.Hue == 1986 or item.Hue == 1991 or item.Hue == 2500 or item.Hue == 1175:
-            IgnoreObject("found")
-            continue
-
-        UseObject("found")
-        WaitForTarget(2000)
-        TargetXYZ(3114, 3905, 0, 4017)
-        Pause(1000)
-        
-    return
+    HeadMsg("Indo para a forja")
+    Andar(forja_x + 1, forja_y)  # Localização da forja
     
+    # Verificação de proximidade da forja
+    if abs(X('self') - forja_x) > 1 or abs(Y('self') - forja_y) > 1:
+        HeadMsg("Muito longe da forja, tentando novamente")
+        Andar(forja_x + 1, forja_y)
+    
+    while FindType(0x19b9, 0, "backpack") or FindType(0x19b8, 0, "backpack"):
+        item = Engine.Items.GetItem(GetAlias("found"))
+        if item is None:
+            continue
+
+        # Nunca Smeltar Dwarven, Obsidian, Xormite, Zinc, or Coal
+        if item.Hue == 1788 or item.Hue == 1986 or item.Hue == 1991 or item.Hue == 2500 or item.Hue == 1175:
+            IgnoreObject("found")
+            continue
+
+        UseObject("found")
+        WaitForTarget(2000)
+        TargetXYZ(forja_x, forja_y, forja_z)  # Target da Forja
+        Pause(1000)
+    return
+
 def FazerPicareta():
     ClearJournal()
-    
     if FindType(0x1EB8, 0, "backpack"):
-        UseObject("Found")                    #Tinker Tools
+        HeadMsg("Usando Tinker Tools para criar uma picareta")
+        UseObject("Found")  # Tinker Tools
         WaitForGump(0x38920abd, 5000)
         ReplyGump(0x38920abd, 29)
         WaitForGump(0x38920abd, 5000)
         ReplyGump(0x38920abd, 100)
         WaitForGump(0x38920abd, 5000)
-        ReplyGump(0x38920abd, 0)        #Close tools
+        ReplyGump(0x38920abd, 0)  # Close tools
     else:
         HeadMsg("Acabaram os Tinker Tools", "self")
         Stop()
     return
 
+def RunMultipleTimes(direction, times):
+    for _ in range(times):
+        Run(direction)
+
 ClearIgnoreList()
+SelecionarForja()
 while True:
     Mine()
-    Run(rand[rando.Next(8)])
-    Run(Direction('self'))
-    Run(Direction('self'))
-    Run(Direction('self'))
-    Run(Direction('self'))
-    Run(Direction('self'))
-    Run(Direction('self'))
-
+    direction = rand[rando.Next(8)]
+    RunMultipleTimes(direction, 6)

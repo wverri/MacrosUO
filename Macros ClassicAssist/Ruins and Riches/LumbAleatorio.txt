@@ -61,9 +61,7 @@ def GetNearestTree():
                 		trees.append({'X': s.X, 'Y': s.Y, 'Z': s.Z, 'ID': s.ID, 'Distance': UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y)})
                 	
     return trees.OrderBy(lambda i: i['Distance']).FirstOrDefault()
-    
-                	
-                	
+
 ClearIgnoreList()
 def Mine(x,y,z,id):
 	HeadMsg("Indo pra arvore")
@@ -107,5 +105,6 @@ ClearIgnoreList()
 while True:
 	tree = GetNearestTree()
 	#dist = tree['Distance']
-	print tree
+	print(tree)
 	Mine(tree['X']-1, tree['Y'], tree['Z'], tree['ID'])
+
