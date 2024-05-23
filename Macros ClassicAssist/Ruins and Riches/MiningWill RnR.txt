@@ -14,11 +14,6 @@ from System import Random
 clr.AddReference('System.Core')
 clr.ImportExtensions(System.Linq)
 
-# Variáveis de localização
-forja_x = 0
-forja_y = 0
-forja_z = 0
-
 def GetNearestForge():
     forges = []
     
@@ -30,23 +25,30 @@ def GetNearestForge():
             for s in statics:
                 if 'forge' in s.Name.lower():
                     if UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y) > 2:
-                        forges.append({'X': s.X, 'Y': s.Y, 'Z': s.Z, 'Distance': UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y)})
+                        forges.append({
+                            'X': s.X, 
+                            'Y': s.Y, 
+                            'Z': s.Z, 
+                            'Distance': UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y),
+                            'Graphic': s.ID  # Adiciona o gráfico da forja
+                        })
     
     if not forges:
-        HeadMsg("Não encontrei nenhuma forja")
+        HeadMsg("Não encontrei nenhuma forja, tente executar o macro em outra posição.")
         Stop()
     
     nearest_forge = sorted(forges, key=lambda i: i['Distance'])[0]
     return nearest_forge
 
 def SelecionarForja():
-    global forja_x, forja_y, forja_z
+    global forja_x, forja_y, forja_z, forja_graphic
     HeadMsg("Procurando a forja mais próxima")
     nearest_forge = GetNearestForge()
     forja_x = nearest_forge['X']
     forja_y = nearest_forge['Y']
     forja_z = nearest_forge['Z']
-    HeadMsg("Forja selecionada: X={}, Y={}, Z={}".format(forja_x, forja_y, forja_z))
+    forja_graphic = nearest_forge['Graphic']  # Armazena o gráfico da forja
+    HeadMsg("Forja selecionada: X={}, Y={}, Z={}, Graphic={}".format(forja_x, forja_y, forja_z, forja_graphic))
 
 # Função de guardar em packhorse não habilitada
 def guardar():
@@ -144,7 +146,7 @@ def SmeltOre():
 
         UseObject("found")
         WaitForTarget(2000)
-        TargetXYZ(forja_x, forja_y, forja_z)  # Target da Forja
+        TargetXYZ(forja_x, forja_y, forja_z, forja_graphic)  # Target da Forja
         Pause(1000)
     return
 
