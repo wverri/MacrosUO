@@ -6,106 +6,116 @@ import System
 from Assistant import Engine
 from ClassicAssist.UO.Data import Statics
 from ClassicAssist.UO import UOMath
-from Assistant import Engine
 from System import Convert
 from ClassicAssist.UO.Data import Direction
 clr.AddReference('System.Core')
 clr.ImportExtensions(System.Linq)
 
-#PromptAlias('Packlhama')
-#SetAlias('Packlhama', 0x0031f1a)
+packlhama = 0x0123 # type do animal de carga
+pesoCarga = 10000 # peso máximo do animal de carga
+treeTypes = [0xcd8,0xcd3,0xce6,0xce3,0xcd0,0xccd,0xcda] # IDs de árvores
+machado = 0xf43 # hatchet
 
 def guardar():
-	while FindType(0x1be0, -1, 'backpack'):
-		log = GetAlias('found')
-		if FindType(0x151, 2):
-			if PropertyValue[int]('found', 'Stones') < 2300:
-				MoveItem(log, "found")
-			else:
-				IgnoreObject("found")
-		else:
-			HeadMsg("Todos os cavalos cheios!", "self")
-			Stop()
-	return
+    while FindType(0x1be0, -1, 'backpack'):
+        log = GetAlias('found')
+        if FindType(packlhama, 2):
+            if PropertyValue[int]('found', 'Stones') < pesoCarga:
+                MoveItem(log, "found")
+            else:
+                IgnoreObject("found")
+        else:
+            HeadMsg("Todos os cavalos cheios!", "self")
+            Stop()
+    return
 
-def Andar(x,y):
-	Pathfind(x,y,0)
-	tentativa = 0
-	tent = 0
-	while X('self') != x or Y('self') != y:
-		Pause(200)
-		tentativa += 1
-		if tentativa > 10:
-			Pathfind(x+1,y-1,0)
-			Pause(2000)
-			tentativa = 0
-			tent +=1
-		if tent > 1:
-			HeadMsg("bugou ao andar...")
-			return
-	return
+def Andar(x, y):
+    Pathfind(x, y, 0)
+    tentativa = 0
+    while X('self') != x or Y('self') != y:
+        Pause(100)
+        tentativa += 1
+        if tentativa > 10:
+            Pathfind(x, y, 0)
+            tentativa = 0
+    return
+
+def VerificarFome():
+    Msg('[myhunger')
+    if InJournal("You are very hungry.", "system"):  
+        itens_comida = [
+            0xc6a,  # pumpkin
+            0x9b7,  # Cooked Bird
+            0x103b, # Bread loaf, Stale Bread
+            0xc6d,  # onion
+            0xd3a,  # turnip
+            0xc5c,  # watermelon
+            0xc78,  # carrot
+            0x98c,  # french bread
+            0x1608, # chicken leg
+            0x160a  # chicken leg
+        ]
+        for item in itens_comida:
+            UseType(item)
+        HeadMsg('Matei a fome :)')
+        ClearJournal()
+
+    if InJournal("You are very thirsty.", "system"):  
+        UseType(0x98f)  # beer
+        HeadMsg('Aquela gelada!')
+        ClearJournal()
 
 def GetNearestTree():
-    treeTypes = [0xcd8,0xcd3,0xce6,0xce3,0xcd0,0xccd,0xcda]
     trees = []
-    
     for x in range(Engine.Player.X+2, Engine.Player.X+30):
         for y in range(Engine.Player.Y-30, Engine.Player.Y+30):
             statics = Statics.GetStatics(Convert.ChangeType(Engine.Player.Map, int), x, y)
             if statics is None:
                 continue
             for s in statics:
-                if 'tree' in s.Name:
-                #if treeTypes.Contains(s.ID):
-                	#print s
-                	if UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y) > 2:
-                		trees.append({'X': s.X, 'Y': s.Y, 'Z': s.Z, 'ID': s.ID, 'Distance': UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y)})
-                	
-	return trees.OrderBy(lambda i: i['Distance']).FirstOrDefault()
+                if 'tree' in s.Name and UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y) > 2:
+                    trees.append({'X': s.X, 'Y': s.Y, 'Z': s.Z, 'ID': s.ID, 'Distance': UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y)})
+    return trees.OrderBy(lambda i: i['Distance']).FirstOrDefault()
 
 ClearIgnoreList()
 def Mine(x,y,z,id):
-	HeadMsg("Indo pra arvore")
-	Andar(x,y)
-	ClearJournal()
-	if not FindLayer('TwoHanded'):
-		ClearHands()
-		Pause(100)
-		FindType(0xf43, -1, 'backpack')
-		EquipItem('found', 'TwoHanded')
-		Pause(100)
-	
-	while Weight() < 1000:
-	
-		if InJournal("enough") or InJournal("axe on that.") or InJournal('too far'):
-			Pause(100)
-			HeadMsg("Guardando")
-			guardar()
-			return
-				
-		if InJournal("worn out") or InJournal("The axe must be equipped"):
-			HeadMsg("Equipando novo machado")
-			ClearHands()
-			Pause(100)
-			FindType(0x0f43, -1, 'backpack')
-			EquipItem('found', 'TwoHanded')
-			Pause(100)
-			ClearJournal()
-	        
-		ClearJournal()		
-		UseObject('found')
-		WaitForTarget(1000)
-		#TargetTileOffsetResource(1, 0, 0)
-		TargetXYZ(x+1, y, z, id)
-		Pause(1200)
-		
-	return
+    HeadMsg("Indo pra arvore")
+    Andar(x,y)
+    ClearJournal()
+    if not FindLayer('TwoHanded'):
+        ClearHands()
+        Pause(100)
+        FindType(machado, -1, 'backpack')
+        EquipItem('found', 'TwoHanded')
+        Pause(100)
+    
+    while Weight() < MaxWeight() - 50:
+        if InJournal("enough") or InJournal("axe on that.") or InJournal('too far'):
+            Pause(100)
+            HeadMsg("Guardando")
+            guardar()
+            return
+                
+        if InJournal("worn out") or InJournal("The axe must be equipped"):
+            HeadMsg("Equipando novo machado")
+            ClearHands()
+            Pause(100)
+            FindType(0x0f43, -1, 'backpack')
+            EquipItem('found', 'TwoHanded')
+            Pause(100)
+            ClearJournal()
+        
+        ClearJournal()      
+        UseObject('found')
+        WaitForTarget(1000)
+        TargetXYZ(x+1, y, z, id)
+        Pause(1200)
+        
+    return
 
 ClearIgnoreList()
-#dist = 1.0
 while True:
-	tree = GetNearestTree()
-	#dist = tree['Distance']
-	print(tree)
-	Mine(tree['X']-1, tree['Y'], tree['Z'], tree['ID'])
-
+    tree = GetNearestTree()
+    print(tree)
+    Mine(tree['X']-1, tree['Y'], tree['Z'], tree['ID'])
+    VerificarFome()
