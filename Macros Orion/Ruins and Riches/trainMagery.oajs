@@ -1,0 +1,18 @@
+
+function trainMagery() {
+    while (true) {
+        if (Player.Mana() >= 20) {
+            Orion.Cast('Clumsy');
+            Orion.WaitForTarget(1000);
+            Orion.TargetObject(Player.Serial());
+        } else {
+            while (Player.Mana() < Player.MaxMana()) {
+                Orion.UseSkill('Meditation');
+                Orion.Wait(1000); // Wait for mana to regenerate
+            }
+        }
+        Orion.Wait(1000); // Wait before next cast to prevent script errors
+    }
+}
+
+trainMagery();

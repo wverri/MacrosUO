@@ -1,0 +1,14 @@
+function stealthMacro() {
+    if (Player.Hidden()) {
+        Orion.UseSkill('Stealth');
+        Orion.Print('Usando Stealth');
+    } else {
+        Orion.UseSkill('Hiding');
+        Orion.Print('Usando Hiding');
+    }
+    Orion.Wait(1000);
+}
+
+while (true){
+	stealthMacro();
+}
