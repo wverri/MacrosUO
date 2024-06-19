@@ -1,0 +1,52 @@
+// Macro de upar status
+// Configurações Iniciais
+var stickType = '0x0DE1';
+var targetStr = 150; // Defina o valor desejado de força
+var targetInt = 150; // Defina o valor desejado de inteligência
+var targetDex = 150; // Defina o valor desejado de destreza
+var totalStats = 450; // Defina o valor total desejado de status
+
+function trainStats() {
+    while (Player.Str() < targetStr || Player.Int() < targetInt || Player.Dex() < targetDex) {
+        if (Player.Str() + Player.Int() + Player.Dex() >= totalStats) {
+            break;
+        }
+
+        // Verificar se já existe algum graveto no chão
+        var stickOnGround = Orion.FindType(stickType, 'any', 'ground')[0];
+        if (stickOnGround) {
+            Orion.Print("Graveto já está no chão.");
+            stick = stickOnGround;
+        } else {
+            // Procurar graveto na mochila
+            var stick = Orion.FindType(stickType, 'any', 'backpack')[0];
+            if (!stick) {
+                Orion.Print("Nenhum graveto encontrado na mochila!");
+                return;
+            }
+
+            // Colocar graveto no chão
+            Orion.MoveItem(stick, 1, 'ground', Player.X(), Player.Y(), Player.Z());
+            Orion.Wait(500);
+        }
+
+        // Colocar graveto no chão
+        Orion.MoveItem(stick, 1, 'ground', Player.X(), Player.Y(), Player.Z());
+        Orion.Wait(500);
+
+        // Tentar acender o graveto repetidamente até subir 1 dos status que não chegaram no cap
+        var attempts = 0;
+        var maxAttempts = 10;
+        while ((Player.Str() < targetStr || Player.Int() < targetInt || Player.Dex() < targetDex) && attempts < maxAttempts) {
+            Orion.UseObject(stick);
+            Orion.Wait(700);
+            attempts++;
+        }
+
+        // Aguardar 1 minuto antes de rodar novamente
+        Orion.Wait('1m');
+        trainStats();
+    }
+}
+
+trainStats();
