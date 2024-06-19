@@ -1,0 +1,120 @@
+// MACRO DE LUMBER ALEATORIO PARA UO Odyssey
+// Adaptado para OrionUO por CursorBot
+
+var packlhama = 0x0123; // type do animal de carga
+var pesoCarga = 10000; // peso máximo do animal de carga
+var treeTypes = [0xcd8, 0xcd3, 0xce6, 0xce3, 0xcd0, 0xccd, 0xcda]; // IDs de árvores
+var machado = 0xf43; // hatchet
+
+function guardar() {
+    while (Orion.FindType('0x1be0', 'any', 'backpack').length > 0) {
+        var log = Orion.FindType('0x1be0', 'any', 'backpack')[0];
+        if (Orion.FindType(packlhama, 'any', 'self').length > 0) {
+            var packhorse = Orion.FindType(packlhama, 'any', 'self')[0];
+            if (Orion.PropertyValue(packhorse, 'Stones') < pesoCarga) {
+                Orion.MoveItem(log, packhorse);
+            } else {
+                Orion.Ignore(packhorse);
+            }
+        } else {
+            Orion.Print("Todos os cavalos cheios!");
+            Orion.TerminateScript();
+        }
+    }
+}
+
+
+function VerificarFome() {
+    Orion.Say('[myhunger');
+    if (Orion.InJournal("You are very hungry.", "system")) {
+        var itens_comida = [0xc6a, 0x9b7, 0x103b, 0xc6d, 0xd3a, 0xc5c, 0xc78, 0x98c, 0x1608, 0x160a];
+        itens_comida.forEach(function(item) {
+            Orion.UseType(item);
+        });
+        Orion.Print('Matei a fome :)');
+        Orion.ClearJournal();
+    }
+
+    if (Orion.InJournal("You are very thirsty.", "system")) {
+        Orion.UseType(0x98f); // beer
+        Orion.Print('Aquela gelada!');
+        Orion.ClearJournal();
+    }
+}
+
+function calcularDistancia(x1, y1, x2, y2) {
+    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+}
+
+function GetNearestTree() {
+    var trees = [];
+    var range = 30; // Define o alcance de busca
+    var playerX = Player.X();
+    var playerY = Player.Y();
+    var playerMap = Player.Map();
+
+    for (var x = playerX - range; x <= playerX + range; x++) {
+        for (var y = playerY - range; y <= playerY + range; y++) {
+            var items = Orion.FindType('0x0', '-1', 'ground', 'near', 2, 'any', x, y, playerMap);
+            items.forEach(function(item) {
+                var itemDetails = Orion.GetStatic(item);
+                if (itemDetails.Name.includes('tree')) {
+                    var distance = calcularDistancia(playerX, playerY, itemDetails.X, itemDetails.Y);
+                    if (distance > 2) { // Verifica se a distância é maior que 2
+                        trees.push({X: itemDetails.X, Y: itemDetails.Y, Z: itemDetails.Z, ID: itemDetails.Graphic, Distance: distance});
+                    }
+                }
+            });
+        }
+    }
+    trees.sort(function(a, b) { return a.Distance - b.Distance; });
+    return trees.length > 0 ? trees[0] : null;
+}
+
+function Mine(x, y, z, id) {
+    Orion.Print("Indo pra árvore");
+    Orion.WalkTo(x, y);
+    Orion.ClearJournal();
+    if (!Orion.FindObject(machado)) {
+        Orion.ClearHands();
+        Orion.Wait(100);
+        Orion.FindType(machado, 'any', 'backpack');
+        Orion.Equip('found', 'TwoHanded');
+        Orion.Wait(100);
+    }
+
+    while (Orion.Weight() < Orion.MaxWeight() - 50) {
+        if (Orion.InJournal("enough") || Orion.InJournal("axe on that.") || Orion.InJournal('too far')) {
+            Orion.Wait(100);
+            Orion.Print("Guardando");
+            guardar();
+            return;
+        }
+
+        if (Orion.InJournal("worn out") || Orion.InJournal("The axe must be equipped")) {
+            Orion.Print("Equipando novo machado");
+            Orion.ClearHands();
+            Orion.Wait(100);
+            Orion.FindType(machado, 'any', 'backpack');
+            Orion.Equip('found', 'TwoHanded');
+            Orion.Wait(100);
+            Orion.ClearJournal();
+        }
+
+        Orion.ClearJournal();
+        Orion.UseObject('found');
+        Orion.WaitForTarget(1000);
+        Orion.TargetXYZ(x + 1, y, z, id);
+        Orion.Wait(1200);
+    }
+}
+
+Orion.IgnoreReset();
+while (true) {
+    var tree = GetNearestTree();
+    if (tree) {
+        Orion.Print(tree);
+        Mine(tree.X - 1, tree.Y, tree.Z, tree.ID);
+        VerificarFome();
+    }
+}
