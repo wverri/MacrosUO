@@ -16,10 +16,10 @@ clr.ImportExtensions(System.Linq)
 #SetAlias('Packlhama', 0x0031f1a)
 
 def guardar():
-    while FindType(0x0123, -1, 'backpack'):
+    while FindType(0x1BE0, -1, 'backpack'):
         log = GetAlias('found')
-        if FindType(0x151, 2):
-            if PropertyValue[int]('found', 'Stones') < 2300:
+        if FindType(0x0123, 2):
+            if PropertyValue[int]('found', 'Stones') < 10000:
                 MoveItem(log, "found")
             else:
                 IgnoreObject("found")
@@ -68,6 +68,7 @@ def GetNearestTree():
 ClearIgnoreList()
 def Mine(x,y,z,id):
     HeadMsg("Indo pra arvore")
+    guardar()
     Andar(x,y)
     ClearJournal()
     if not FindLayer('TwoHanded'):
@@ -77,7 +78,7 @@ def Mine(x,y,z,id):
         EquipItem('found', 'TwoHanded')
         Pause(100)
     
-    while Weight() < 1000:
+    while Weight() < 600:
     
         if InJournal("enough") or InJournal("axe on that.") or InJournal('too far'):
             Pause(100)

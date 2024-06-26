@@ -30,14 +30,21 @@ def guardar():
     return
 
 def Andar(x, y):
+    HeadMsg("Andando")
     Pathfind(x, y, 0)
+    if not Pathfinding():
+        HeadMsg("Destino é intransponível, tentando encontrar um ponto próximo")
+        x, y = EncontrarPontoProximo(x, y)
+        Pathfind(x, y, 0)
+        if not Pathfinding():
+            HeadMsg("Não foi possível encontrar um ponto próximo acessível")
+            return
+
     tentativa = 0
     while X('self') != x or Y('self') != y:
-        Pause(100)
-        tentativa += 1
-        if tentativa > 10:
-            Pathfind(x, y, 0)
-            tentativa = 0
+        while Pathfinding():
+            Pause(50)
+        Pathfind(x, y, 0)
     return
 
 def VerificarFome():

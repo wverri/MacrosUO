@@ -14,25 +14,48 @@ from System import Random
 clr.AddReference('System.Core')
 clr.ImportExtensions(System.Linq)
 
+fazerpicareta = False
+verificarfome = False
+distanciaentrespots = 4
+idforja = '0x0FB1'
+
 def GetNearestForge():
     forges = []
     
+    # Busca por forjas nos statics
     for x in range(Engine.Player.X - 40, Engine.Player.X + 40):
         for y in range(Engine.Player.Y - 40, Engine.Player.Y + 40):
             statics = Statics.GetStatics(Convert.ChangeType(Engine.Player.Map, int), x, y)
             if statics is None:
                 continue
             for s in statics:
-                if 'forge' in s.Name.lower():
+                if ('forge' in s.Name.lower()) or (s.ID == idforja):
                     if UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y) > 2:
                         forges.append({
                             'X': s.X, 
                             'Y': s.Y, 
                             'Z': s.Z, 
                             'Distance': UOMath.Distance(Engine.Player.X, Engine.Player.Y, s.X, s.Y),
-                            'Graphic': s.ID  # Adiciona o gráfico da forja
+                            'Graphic': s.ID
                         })
-    
+
+    # Se não encontrou forjas nos statics, busca nos itens ao redor
+    if not forges:
+        items = Engine.Items.SelectEntities(lambda i: i.Distance < 40)
+        for item in items:
+            if item is None:
+                continue
+            #print(item.ID)
+            if UOMath.Distance(Engine.Player.X, Engine.Player.Y, item.X, item.Y) > 2:
+                forges.append({
+                    'X': item.X, 
+                    'Y': item.Y, 
+                    'Z': item.Z, 
+                    'Distance': UOMath.Distance(Engine.Player.X, Engine.Player.Y, item.X, item.Y),
+                    'Graphic': item.ID,
+                    'Serial': item.Serial
+                })
+
     if not forges:
         HeadMsg("Não encontrei nenhuma forja, tente executar o macro em outra posição.")
         Stop()
@@ -41,20 +64,21 @@ def GetNearestForge():
     return nearest_forge
 
 def SelecionarForja():
-    global forja_x, forja_y, forja_z, forja_graphic
+    global forja_x, forja_y, forja_z, forja_graphic, forja_serial
     HeadMsg("Procurando a forja mais próxima")
     nearest_forge = GetNearestForge()
     forja_x = nearest_forge['X']
     forja_y = nearest_forge['Y']
     forja_z = nearest_forge['Z']
     forja_graphic = nearest_forge['Graphic']  # Armazena o gráfico da forja
-    HeadMsg("Forja selecionada: X={}, Y={}, Z={}, Graphic={}".format(forja_x, forja_y, forja_z, forja_graphic))
+    forja_serial = nearest_forge['Serial']
+    HeadMsg("Forja selecionada: X={}, Y={}, Z={}, Graphic={}, Serial={}".format(forja_x, forja_y, forja_z, forja_graphic, forja_serial))
 
 def MapearRegiao():
     global pontos_mineracao
     pontos_mineracao = []
-    for x in range(forja_x - 30, forja_x + 30, 6):
-        for y in range(forja_y - 30, forja_y + 30, 6):
+    for x in range(forja_x - 30, forja_x + 30, distanciaentrespots):
+        for y in range(forja_y - 30, forja_y + 30, distanciaentrespots):
             statics = Statics.GetStatics(Convert.ChangeType(Engine.Player.Map, int), x, y)
             if statics is None:
                 continue
@@ -66,25 +90,26 @@ def MapearRegiao():
         Stop()
 
 def VerificarFome():
-    Msg('[myhunger')
-    if InJournal("You are very hungry.", "system"):  
-        UseType(0xc6a) 
-        UseType(0x9b7) ## Cooked Bird 
-        UseType(0x103b) ## Bread loaf, Stale Bread 
-        UseType(0xc6d) ## onion
-        UseType(0xd3a) ## turnip
-        UseType(0xc6a) ## pumpkin
-        UseType(0xc5c) ## watermelon
-        UseType(0xc78) ## carrot
-        UseType(0x98c) ## french bread
-        UseType(0x1608) # chicken leg
-        UseType(0x160a) # chicken leg
-        HeadMsg('Matei a fome :)')
-        ClearJournal()
-    if InJournal("You are very thirsty.", "system"):  
-        UseType(0x98f) 
-        HeadMsg('Aquela gelada!')
-        ClearJournal()
+    if verificarfome:
+        Msg('[myhunger')
+        if InJournal("You are very hungry.", "system"):  
+            UseType(0xc6a) 
+            UseType(0x9b7) ## Cooked Bird 
+            UseType(0x103b) ## Bread loaf, Stale Bread 
+            UseType(0xc6d) ## onion
+            UseType(0xd3a) ## turnip
+            UseType(0xc6a) ## pumpkin
+            UseType(0xc5c) ## watermelon
+            UseType(0xc78) ## carrot
+            UseType(0x98c) ## french bread
+            UseType(0x1608) # chicken leg
+            UseType(0x160a) # chicken leg
+            HeadMsg('Matei a fome :)')
+            ClearJournal()
+        if InJournal("You are very thirsty.", "system"):  
+            UseType(0x98f) 
+            HeadMsg('Aquela gelada!')
+            ClearJournal()
 
 def Mine():
     HeadMsg("Minerar")
@@ -94,7 +119,7 @@ def Mine():
         if not FindType(0xe86, -1, 'backpack'):
             HeadMsg("Criando uma nova picareta")
             FazerPicareta()
-        if Weight() > MaxWeight() - 50:
+        if Weight() > MaxWeight() - 25:
             HeadMsg("Peso acima do limite, fundindo minério")
             current_position = (X('self'), Y('self'))
             SmeltOre()
@@ -104,6 +129,9 @@ def Mine():
         TargetTileOffsetResource(0, 0, 0)
         Pause(200)
         if InJournal('There is no metal here to mine.'):
+            HeadMsg("Nenhum metal encontrado aqui")
+            break
+        if InJournal('Não tem mais minério neste local'):
             HeadMsg("Nenhum metal encontrado aqui")
             break
         Pause(1000)
@@ -157,7 +185,8 @@ def SmeltOre():
 
         UseObject("found")
         WaitForTarget(2000)
-        TargetXYZ(forja_x, forja_y, forja_z, forja_graphic)  # Target da Forja
+        Target(forja_serial)
+        #TargetXYZ(forja_x, forja_y, forja_z, forja_graphic)  # Target da Forja
         
         if InJournal("That is too far away"):
             Andar(forja_x + 1, forja_y)
@@ -167,19 +196,20 @@ def SmeltOre():
     return
 
 def FazerPicareta():
-    ClearJournal()
-    if FindType(0x1EB8, 0, "backpack"):
-        HeadMsg("Usando Tinker Tools para criar uma picareta")
-        UseObject("Found")  # Tinker Tools
-        WaitForGump(0x38920abd, 5000)
-        ReplyGump(0x38920abd, 29)
-        WaitForGump(0x38920abd, 5000)
-        ReplyGump(0x38920abd, 100)
-        WaitForGump(0x38920abd, 5000)
-        ReplyGump(0x38920abd, 0)  # Close tools
-    else:
-        HeadMsg("Acabaram os Tinker Tools", "self")
-        Stop()
+    if fazerpicareta:
+        ClearJournal()
+        if FindType(0x1EB8, 0, "backpack"):
+            HeadMsg("Usando Tinker Tools para criar uma picareta")
+            UseObject("Found")  # Tinker Tools
+            WaitForGump(0x38920abd, 5000)
+            ReplyGump(0x38920abd, 29)
+            WaitForGump(0x38920abd, 5000)
+            ReplyGump(0x38920abd, 100)
+            WaitForGump(0x38920abd, 5000)
+            ReplyGump(0x38920abd, 0)  # Close tools
+        else:
+            HeadMsg("Acabaram os Tinker Tools", "self")
+            Stop()
     return
 
 def MinerarPontos():
