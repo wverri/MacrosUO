@@ -34,3 +34,7 @@ function useBandages() {
 }
 
 useBandages();
+
+function hide() {
+	Orion.Hide(['serial'=targetRequest]);
+}

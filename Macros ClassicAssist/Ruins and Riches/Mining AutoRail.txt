@@ -17,14 +17,16 @@ clr.ImportExtensions(System.Linq)
 fazerpicareta = False
 verificarfome = False
 distanciaentrespots = 4
-idforja = '0x0FB1'
+idforja = 0x0FB1
+forja_range = 5
+mining_range = 15
 
 def GetNearestForge():
     forges = []
     
     # Busca por forjas nos statics
-    for x in range(Engine.Player.X - 40, Engine.Player.X + 40):
-        for y in range(Engine.Player.Y - 40, Engine.Player.Y + 40):
+    for x in range(Engine.Player.X - forja_range, Engine.Player.X + forja_range):
+        for y in range(Engine.Player.Y - forja_range, Engine.Player.Y + forja_range):
             statics = Statics.GetStatics(Convert.ChangeType(Engine.Player.Map, int), x, y)
             if statics is None:
                 continue
@@ -41,7 +43,7 @@ def GetNearestForge():
 
     # Se não encontrou forjas nos statics, busca nos itens ao redor
     if not forges:
-        items = Engine.Items.SelectEntities(lambda i: i.Distance < 40)
+        items = Engine.Items.SelectEntities(lambda i: i.Distance < 10 and (i.ID == idforja))
         for item in items:
             if item is None:
                 continue
@@ -77,8 +79,8 @@ def SelecionarForja():
 def MapearRegiao():
     global pontos_mineracao
     pontos_mineracao = []
-    for x in range(forja_x - 30, forja_x + 30, distanciaentrespots):
-        for y in range(forja_y - 30, forja_y + 30, distanciaentrespots):
+    for x in range(forja_x - mining_range, forja_x + mining_range, distanciaentrespots):
+        for y in range(forja_y - mining_range, forja_y + mining_range, distanciaentrespots):
             statics = Statics.GetStatics(Convert.ChangeType(Engine.Player.Map, int), x, y)
             if statics is None:
                 continue
@@ -135,6 +137,12 @@ def Mine():
             HeadMsg("Nenhum metal encontrado aqui")
             break
         Pause(1000)
+        
+    while FindType(0x19ba, 0, "backpack") or FindType(0x19b7, 0, "backpack"):
+        HeadMsg("Jogando minério no chão")
+        MoveItemOffset("found", 0, 0, 0, -1)
+        Pause(1000)
+        
     return
     
 def Andar(x, y):
@@ -184,7 +192,7 @@ def SmeltOre():
             continue
 
         UseObject("found")
-        WaitForTarget(2000)
+        WaitForTarget(4000)
         Target(forja_serial)
         #TargetXYZ(forja_x, forja_y, forja_z, forja_graphic)  # Target da Forja
         
@@ -193,6 +201,7 @@ def SmeltOre():
             continue
         
         Pause(1000)
+
     return
 
 def FazerPicareta():
