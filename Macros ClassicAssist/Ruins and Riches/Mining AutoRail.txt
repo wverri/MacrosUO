@@ -43,7 +43,7 @@ def GetNearestForge():
 
     # Se não encontrou forjas nos statics, busca nos itens ao redor
     if not forges:
-        items = Engine.Items.SelectEntities(lambda i: i.Distance < 10 and (i.ID == idforja))
+        items = Engine.Items.SelectEntities(lambda i: i.Distance < forja_range and (i.ID == idforja))
         for item in items:
             if item is None:
                 continue
@@ -79,6 +79,8 @@ def SelecionarForja():
 def MapearRegiao():
     global pontos_mineracao
     pontos_mineracao = []
+    
+    # Busca por pontos de mineração nos statics
     for x in range(forja_x - mining_range, forja_x + mining_range, distanciaentrespots):
         for y in range(forja_y - mining_range, forja_y + mining_range, distanciaentrespots):
             statics = Statics.GetStatics(Convert.ChangeType(Engine.Player.Map, int), x, y)
@@ -87,6 +89,15 @@ def MapearRegiao():
             for s in statics:
                 if 'cave floor' in s.Name.lower():
                     pontos_mineracao.append((x, y))
+    
+    # Se não encontrou pontos de mineração nos statics, busca nos itens ao redor
+    if not pontos_mineracao:
+        items = Engine.Items.SelectEntities(lambda i: i.Distance < mining_range and 'cave floor' in i.Name.lower())
+        for item in items:
+            if item is None:
+                continue
+            pontos_mineracao.append((item.X, item.Y))
+    
     if not pontos_mineracao:
         HeadMsg("Não encontrei nenhum ponto de mineração, tente executar o macro em outra posição.")
         Stop()
