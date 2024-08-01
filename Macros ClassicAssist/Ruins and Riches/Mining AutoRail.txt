@@ -14,12 +14,13 @@ from System import Random
 clr.AddReference('System.Core')
 clr.ImportExtensions(System.Linq)
 
-fazerpicareta = False
+fazerpicareta = True
 verificarfome = False
 distanciaentrespots = 4
-idforja = 0x0FB1
+idforja = 0x1996
 forja_range = 5
 mining_range = 15
+static = False #se vai minerar em mina padrão ou criada
 
 def GetNearestForge():
     forges = []
@@ -88,7 +89,7 @@ def MapearRegiao():
                 continue
             for s in statics:
                 if 'cave floor' in s.Name.lower():
-                    pontos_mineracao.append((x, y))
+                    pontos_mineracao.append((x, y, 0))
     
     # Se não encontrou pontos de mineração nos statics, busca nos itens ao redor
     if not pontos_mineracao:
@@ -96,7 +97,7 @@ def MapearRegiao():
         for item in items:
             if item is None:
                 continue
-            pontos_mineracao.append((item.X, item.Y))
+            pontos_mineracao.append((item.X, item.Y, item.Serial))
     
     if not pontos_mineracao:
         HeadMsg("Não encontrei nenhum ponto de mineração, tente executar o macro em outra posição.")
@@ -124,7 +125,7 @@ def VerificarFome():
             HeadMsg('Aquela gelada!')
             ClearJournal()
 
-def Mine():
+def Mine(spot):
     HeadMsg("Minerar")
     ClearJournal()
     while not InJournal('There is no metal here to mine.'):
@@ -139,7 +140,11 @@ def Mine():
             Andar(current_position[0], current_position[1])  # Volta ao ponto onde parou
         UseType(0xe86)
         WaitForTarget(1000)
-        TargetTileOffsetResource(0, 0, 0)
+        if (static):
+            TargetTileOffsetResource(0, 0, 0)
+        else:
+            Target(spot)
+        Target(spot)
         Pause(200)
         if InJournal('There is no metal here to mine.'):
             HeadMsg("Nenhum metal encontrado aqui")
@@ -236,7 +241,7 @@ def MinerarPontos():
     for ponto in pontos_mineracao:
         print(ponto)
         Andar(ponto[0], ponto[1])
-        Mine()
+        Mine(ponto[2])
 
 ClearIgnoreList()
 SelecionarForja()
