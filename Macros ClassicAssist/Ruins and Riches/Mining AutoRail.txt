@@ -1,7 +1,8 @@
-# MACRO DE MINER ALEATORIO PARA UOODYSSEY
+# MACRO DE MINER ALEATORIO PARA UOODYSSEY/PROJETOUO
 # Feito por WillxD
-# Configurado para minerar em Britain, minera e smelta
+# Para começar ir até próximo de uma forja e executar o macro
 # Importante ter TinkerTools na bag para fazer mais picaretas se essas acabarem.
+# Não esqueça de configurar o id da forja, se vai fazerpicareta, se vai verificar fome, etc.
 
 import clr
 import System
@@ -14,13 +15,24 @@ from System import Random
 clr.AddReference('System.Core')
 clr.ImportExtensions(System.Linq)
 
-fazerpicareta = True
-verificarfome = False
-distanciaentrespots = 4
-idforja = 0x1996
-forja_range = 5
-mining_range = 15
+fazerpicareta = True #False
+fazerpicaretagumpid = 0x38920abd
+fazerpicaretaresp1 = 15
+fazerpicaretaresp2 = 114
+
+verificarfome = False #True
+distanciaentrespots = 2
+idforja = 0x0FB1 # 0x1996 # 
+forja_range = 8
+mining_range = 20
 static = False #se vai minerar em mina padrão ou criada
+break_messages = [
+        'There is no metal here to mine.',
+        'Não tem mais minério neste local',
+        'Target cannot be seen.',
+        'You cannot reach the target.',
+        'Isto está muito longe'
+    ]
 
 def GetNearestForge():
     forges = []
@@ -90,14 +102,19 @@ def MapearRegiao():
             for s in statics:
                 if 'cave floor' in s.Name.lower():
                     pontos_mineracao.append((x, y, 0))
-    
+
     # Se não encontrou pontos de mineração nos statics, busca nos itens ao redor
     if not pontos_mineracao:
         items = Engine.Items.SelectEntities(lambda i: i.Distance < mining_range and 'cave floor' in i.Name.lower())
+        grid = {}
         for item in items:
             if item is None:
                 continue
-            pontos_mineracao.append((item.X, item.Y, item.Serial))
+            grid_x = item.X - (item.X % distanciaentrespots)
+            grid_y = item.Y - (item.Y % distanciaentrespots)
+            if (grid_x, grid_y) not in grid:
+                grid[(grid_x, grid_y)] = item
+                pontos_mineracao.append((grid_x, grid_y, item.Serial))
     
     if not pontos_mineracao:
         HeadMsg("Não encontrei nenhum ponto de mineração, tente executar o macro em outra posição.")
@@ -144,12 +161,10 @@ def Mine(spot):
             TargetTileOffsetResource(0, 0, 0)
         else:
             Target(spot)
-        Target(spot)
+        #Target(spot)
+        Target('self')
         Pause(200)
-        if InJournal('There is no metal here to mine.'):
-            HeadMsg("Nenhum metal encontrado aqui")
-            break
-        if InJournal('Não tem mais minério neste local'):
+        if any(InJournal(msg) for msg in break_messages):
             HeadMsg("Nenhum metal encontrado aqui")
             break
         Pause(1000)
@@ -226,12 +241,12 @@ def FazerPicareta():
         if FindType(0x1EB8, 0, "backpack"):
             HeadMsg("Usando Tinker Tools para criar uma picareta")
             UseObject("Found")  # Tinker Tools
-            WaitForGump(0x38920abd, 5000)
-            ReplyGump(0x38920abd, 29)
-            WaitForGump(0x38920abd, 5000)
-            ReplyGump(0x38920abd, 100)
-            WaitForGump(0x38920abd, 5000)
-            ReplyGump(0x38920abd, 0)  # Close tools
+            WaitForGump(fazerpicaretagumpid, 5000)
+            ReplyGump(fazerpicaretagumpid, fazerpicaretaresp1)
+            WaitForGump(fazerpicaretagumpid, 5000)
+            ReplyGump(fazerpicaretagumpid, fazerpicaretaresp2)
+            WaitForGump(fazerpicaretagumpid, 5000)
+            ReplyGump(fazerpicaretagumpid, 0)  # Close tools
         else:
             HeadMsg("Acabaram os Tinker Tools", "self")
             Stop()
