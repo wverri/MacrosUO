@@ -1,0 +1,22 @@
+// Macro para imprimir a localização atual formatada no TextWindow
+
+function PrintCurrentLocationToTextWindow() {
+    var x = Player.X();
+    var y = Player.Y();
+    
+    // Formata a string a ser impressa
+    var formattedLocation = "        { x: " + x + ", y: " + y + " },"; 
+    
+    // Abre a janela de texto (se não estiver aberta)
+    TextWindow.Open();
+    
+    // Imprime a localização formatada na janela de texto
+    TextWindow.Print(formattedLocation);
+    
+    // Imprime uma confirmação no journal do sistema
+    Orion.Print("0x0044", "Localização (" + x + ", " + y + ") impressa no TextWindow.");
+}
+
+// --- Execução --- 
+// Chama a função principal para imprimir a localização quando o script for executado.
+PrintCurrentLocationToTextWindow();

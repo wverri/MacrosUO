@@ -1,0 +1,68 @@
+function cortarEColecionarLoot() {
+    var ferramenta = '0x40015AF3';  // ID da ferramenta de corte
+    var corpos = Orion.FindType('0x2006', '0xFFFF', 'ground', '2');  // Encontra corpos ao redor do personagem em 3 tiles
+
+    if (!corpos.length) {
+        Orion.Print("Nenhum corpo encontrado!");
+        return;
+    }
+
+    // Verifica se a ferramenta de corte existe no inventário
+    if (!Orion.FindObject(ferramenta)) {
+        Orion.Print("Ferramenta de corte não encontrada!");
+        return;
+    }
+
+    Orion.Print("Encontrado(s) " + corpos.length + " corpo(s). Iniciando corte...");
+
+    for (var i = 0; i < corpos.length; i++) {
+        Orion.UseObject(ferramenta);
+
+        if (Orion.WaitForTarget(500)) {
+            Orion.TargetObject(corpos[i]);  // Corta o corpo encontrado
+            Orion.Print("Cortando corpo " + (i + 1) + "/" + corpos.length);
+        } else {
+            Orion.Print("Erro ao cortar o corpo!");
+            continue;
+        }
+
+        // Espera o loot aparecer após o corte
+        Orion.Wait(500);
+
+        // Usa o corpo cortado para abrir o loot
+        Orion.UseObject(corpos[i]);  // Clica diretamente no corpo para abrir o loot
+        Orion.Print("Abrindo loot do corpo " + (i + 1));
+        Orion.Wait(3000);
+        Orion.ControlAgent('autoloot', 'Gold', 'start');
+
+        // Pequeno delay para evitar sobrecarga de comandos
+        Orion.Wait(500);
+        Orion.Ignore(corpos[i]);
+    }
+
+    Orion.Print("Todos os corpos foram processados!");
+
+}
+
+function monitorarMortes() {
+    Orion.Print("Iniciando monitoramento de mortes...");
+
+    var corposProcessados = [];
+
+    while (true) {
+        var corpos = Orion.FindType('0x2006', '0xFFFF', 'ground', '3'); // 3 tiles de distância
+
+        for (var i = 0; i < corpos.length; i++) {
+            var corpoId = corpos[i];
+
+            // Se o corpo ainda não foi processado
+            if (corposProcessados.indexOf(corpoId) === -1) {
+                Orion.Print("Novo corpo detectado!");
+                cortarEColecionarLoot(); // Chama sua função
+                corposProcessados.push(corpoId); // Marca como processado
+            }
+        }
+
+        Orion.Wait(500); // Espera 1 segundo antes de verificar de novo
+    }
+}

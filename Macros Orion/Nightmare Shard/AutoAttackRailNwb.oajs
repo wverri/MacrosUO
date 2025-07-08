@@ -1,0 +1,66 @@
+// Paste your code here :)
+function attackClosestRail() {
+    Orion.IgnoreReset();
+    Orion.Ignore(self);
+
+    var route = [
+        { x: 4521, y: 1377 },
+        { x: 4512, y: 1375 },
+        { x: 4512, y: 1375 },
+        { x: 4517, y: 1383 },
+        { x: 4493, y: 1387 },
+        { x: 4494, y: 1397 },
+        { x: 4486, y: 1391 },
+        { x: 4486, y: 1380 },
+        { x: 4496, y: 1363 },
+        { x: 4507, y: 1359 },
+        { x: 4520, y: 1357 },
+        { x: 4523, y: 1359 },
+        { x: 4533, y: 1364 },
+        { x: 4527, y: 1354 },
+    ];
+    var currentRouteIndex = 0;
+
+    while (true) {
+        if (Player.Dead()) {
+            // Se o personagem estiver morto ou como fantasma, execute a função de ressurreição
+            Ress();
+            Orion.Wait(180000); // Aguarde 3 minutos até ressuscitar
+            continue; // Pule para a próxima iteração do loop
+        }
+
+		var enemy = Orion.FindType("any", "-1", "ground", "mobile | near | ignorefriends", "6", "gray | criminal | enemy | red", "!0x0190 & !0x0191");
+        var obj = Orion.FindObject(enemy);
+        Orion.Wait(50);
+
+        if (obj != null) {
+        	Orion.Attack(enemy);
+            while (obj.Exists()) {
+                if (Orion.GetDistance(obj) > 1) {
+                    Orion.WalkTo(obj.X(), obj.Y(), obj.Z(), 1);
+                    Orion.Attack(enemy);
+                } else {
+                    Orion.Attack(enemy);
+                }
+            }
+        } else {
+            // Se não houver inimigos próximos, ande até a próxima coordenada da rota
+            var nextCoord = route[currentRouteIndex];
+            Orion.WalkTo(nextCoord.x, nextCoord.y, 0, 0);
+
+            // Avance para a próxima coordenada da rota (ciclo)
+            currentRouteIndex = (currentRouteIndex + 1) % route.length;
+        }
+    }
+}
+
+function Ress() {
+    Orion.HelpGump();
+    if (Orion.WaitForGump(1000)) {
+        var gump0 = Orion.GetGump('last');
+        if ((gump0 !== null) && (!gump0.Replayed()) && (gump0.ID() === '0x0000040E')) {
+            gump0.Select(Orion.CreateGumpHook(2));
+            Orion.Wait(100);
+        }
+    }
+}

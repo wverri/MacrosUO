@@ -21,7 +21,9 @@ var onSmaltar=1; // 0 para guardar ores e 1 para guardar lingotes.
 var SmaltarCave=0; //0 para usar forja na mina e 1 para usar em casa.
 var hidd=0; // 0 = não fica em stealth, 1 = usa stealth.
 var guard=0; // 0 = não chama guards, 1 = chama guards.
-var maxWeight = 500; //Peso Maximo - (Valor definido)
+var maxWeight = 810 //Peso Maximo - (Valor definido)
+// Verifica se quer usar a separação dos minérios antes de smaltar
+var usarSeparacao = false; // Você pode mudar para false se quiser desativar temporariamente
 // Fim das ConfiguraçõeMining 
 //ATENÇÂO!!!
 
@@ -109,7 +111,7 @@ function Cave(){
 			Orion.ClearJournal();
 			Orion.WaitTargetTileRelative('cave', x, y, Player.Z());      
 			Orion.UseType(pickaxe);
-			Orion.WaitJournal('Sua picareta|Isso está|foi morto|Você coloca|Você colocou|Você não|Tente minerar|You cannot|You are|cadáver|Você cava|Não há|You put|You loosen|There is|You have|Try mining', Orion.Now(), (Orion.Now() + 14000), 'my|sys')
+			Orion.WaitJournal('Voce nao achou nada|Sua picareta|Isso está|foi morto|Você coloca|Você colocou|Você não|Tente minerar|You cannot|You are|cadáver|Você cava|Não há|You put|You loosen|There is|You have|Try mining', Orion.Now(), (Orion.Now() + 14000), 'my|sys')
 			Orion.Wait(50);
 		}
 	}
@@ -118,8 +120,16 @@ function Cave(){
 function CheckWeight(){
 	var weight=Player.Weight();
 	if(weight >= maxWeight){
-		if(onSmaltar==1)
-			smaltar();
+		if(onSmaltar==1) {			
+			if (usarSeparacao) {
+				// Usa a nova função que separa e depois smalta
+				SepararESmaltar();
+			} else {
+				// Usa a função original de smaltar sem separar
+				smaltar();
+			}
+		}
+		
 		if (local == 1){
 			while((Player.X()!=casaX) && (Player.Y()!=casaY)){
 				LocMov(0);
@@ -305,4 +315,131 @@ function LocMov(x){
 		}else
 			Orion.CharPrint('self', '0x0035', 'Valor da variavel \"local" não definida corretamente!');
 	}
+}
+
+
+function SepararESmaltar() {
+    // Array com os tipos de minérios (baseado na variável typeOres do script existente)
+    var tiposDeOres = ['0x19B9', '0x19B8', '0x19B7', '0x19BA'];
+    var maiorQuantidade = 0;
+    var tipoComMaior = '';
+    
+    // Verifica qual tipo de minério tem a maior quantidade
+    for (var i = 0; i < tiposDeOres.length; i++) {
+        var tipo = tiposDeOres[i];
+        var quantidade = Orion.Count(tipo, 'any', 'backpack');
+        
+        if (quantidade > maiorQuantidade) {
+            maiorQuantidade = quantidade;
+            tipoComMaior = tipo;
+        }
+    }
+    
+    // Se não encontrou nenhum minério, avisa o jogador
+    if (maiorQuantidade <= 0) {
+        Orion.CharPrint('self', 33, 'Não encontrei nenhum minério na sua mochila!');
+        return;
+    }
+    
+    Orion.CharPrint('self', 66, 'Encontrei ' + maiorQuantidade + ' unidades do minério tipo ' + tipoComMaior);
+    Orion.CharPrint('self', 66, 'Vou separar em montes individuais...');
+    
+    // Continua separando enquanto houver pilhas com mais de 1 item
+    while (true) {
+        // Encontra a primeira pilha com mais de 1 item
+        var pilhas = Orion.FindType(tipoComMaior, 'any', 'backpack');
+        if (pilhas.length === 0) break;
+        
+        var pilhaAtual = pilhas[0];
+        
+        // Arrasta 1 item da pilha
+        Orion.DragItem(pilhaAtual, 1);
+        Orion.Wait(500);
+        
+        // Solta na mochila em posição aleatória
+        Orion.DropDraggedItem('backpack', Orion.Random(50, 150), Orion.Random(50, 150));
+        Orion.Wait(500);
+        
+        // Verifica se ainda há minérios para separar
+        if (Orion.Count(tipoComMaior, 'any', 'backpack') <= pilhas.length) {
+            break; // Todas as pilhas já têm apenas 1 item
+        }
+    }
+    
+    Orion.CharPrint('self', 68, 'Separação de minérios concluída!');
+    
+    // Verificação extra para garantir que todos os minérios estão em montes de 1
+    var todosOres = '0x19B9|0x19B8|0x19B7|0x19BA';
+    var pilhasRestantes = Orion.FindType(todosOres, 'any', 'backpack');
+    var temPilhaGrande = false;
+    
+    for (var i = 0; i < pilhasRestantes.length; i++) {
+        var pilhaAtual = pilhasRestantes[i];
+        if (Orion.Count(todosOres, pilhaAtual, 'backpack') > 1) {
+            temPilhaGrande = true;
+            Orion.CharPrint('self', 33, 'Ainda existem montes com mais de 1 minério! Separando...');
+            break;
+        }
+    }
+    
+    // Se encontrou alguma pilha grande, separa novamente
+    if (temPilhaGrande) {
+        while (true) {
+            var pilhasGrandes = [];
+            pilhasRestantes = Orion.FindType(todosOres, 'any', 'backpack');
+            
+            // Verifica se há pilhas com mais de 1 item
+            for (var i = 0; i < pilhasRestantes.length; i++) {
+                if (Orion.Count(todosOres, pilhasRestantes[i], 'backpack') > 1) {
+                    pilhasGrandes.push(pilhasRestantes[i]);
+                }
+            }
+            
+            if (pilhasGrandes.length === 0) break;
+            
+            // Divide a primeira pilha grande encontrada
+            Orion.DragItem(pilhasGrandes[0], 1);
+            Orion.Wait(500);
+            Orion.DropDraggedItem('backpack', Orion.Random(50, 150), Orion.Random(50, 150));
+            Orion.Wait(500);
+        }
+        
+        Orion.CharPrint('self', 68, 'Separação adicional concluída!');
+    }
+    
+    // Agora vamos smaltar todos os minérios
+    Orion.CharPrint('self', 66, 'Iniciando fundição dos minérios...');
+    SmaltarTodos();
+}
+
+function SmaltarTodos() {
+    
+    Orion.WalkTo(forjaX, forjaY, forjaZ, 0, 0, 1, 1);
+    while((Player.X()!=forjaX) && (Player.Y()!=forjaY)){
+        Orion.WalkTo(forjaX, forjaY, forjaZ, 0, 0, 1, 1);
+        Orion.Wait(1000);
+    }
+    
+    // Define a variável typeOres caso não esteja acessível
+    var oresParaSmaltar = '0x19B9|0x19B8|0x19B7|0x19BA';
+    
+    // Conta quantos minérios temos para fundir
+    var totalOres = Orion.Count(oresParaSmaltar, 'any', 'backpack');
+    if (totalOres > 0) {
+        Orion.CharPrint('self', 66, 'Fundindo ' + totalOres + ' minérios...');
+    } else {
+        Orion.CharPrint('self', 33, 'Não há minérios para fundir!');
+        return;
+    }
+    
+    // Usa cada minério individualmente na forja
+    while(Orion.Count(oresParaSmaltar, 'any', 'backpack')>0){
+        var ores = Orion.FindType(oresParaSmaltar, 'any', 'backpack');
+        for (var i=0; i < ores.length; i++){
+            Orion.UseObject(ores[i]);
+            Orion.Wait(100); // Espera um pouco mais entre cada fundição
+        }
+    }
+    
+    Orion.CharPrint('self', 68, 'Fundição concluída!');
 }

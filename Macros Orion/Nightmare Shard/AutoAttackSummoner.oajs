@@ -11,7 +11,7 @@ function summonAttackClosest()
             Orion.TargetObject(enemy[0]);
             Orion.Attack(enemy[0]);
         }
-        Orion.Wait(5000);
-        Orion.PlayMacro('summon1');
+        Orion.Wait(1000);
+        //Orion.PlayMacro('summon1');
     }
 }

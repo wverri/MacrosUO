@@ -1,0 +1,47 @@
+function GeneratedScript_100543()
+{
+	Orion.DragItem('0x40011244', 1);
+	Orion.Wait('300');
+	Orion.DropDraggedItemRelative(1, 0, 0);
+	Orion.Wait('500');
+	Orion.DragItem('0x400074DE', 1);
+	Orion.Wait('300');
+	Orion.DropDraggedItemRelative(0, 0, 0);
+	Orion.Wait('500');
+	Orion.DragItem('0x40010BE7', 1);
+	Orion.Wait('300');
+	Orion.DropDraggedItemRelative(1, 1, 0);
+	Orion.Wait('500');
+	Orion.DragItem('0x40008C15', 1);
+	Orion.Wait('300');
+	Orion.DropDraggedItemRelative(1, -1, 0);
+	Orion.Wait('500');
+	Orion.DragItem('0x40003EEB', 1);
+	Orion.Wait('300');
+	Orion.DropDraggedItemRelative(0, 1, 0);
+	Orion.Wait('500');
+	Orion.DragItem('0x40010569', 1);
+	Orion.Wait('300');
+	Orion.DropDraggedItemRelative(-1, 1, 0);
+	Orion.Wait('500');
+	Orion.DragItem('0x4002DF49', 1);
+	Orion.Wait('300');
+	Orion.DropDraggedItemRelative(-1, 1, 0);
+	Orion.Wait('500');
+	Orion.DragItem('0x40005578', 1);
+	Orion.Wait('300');
+	Orion.DropDraggedItemRelative(-1, 0, 0);
+	Orion.Wait('500');
+	Orion.DragItem('0x4002BE78', 1);
+	Orion.Wait('300');
+	Orion.DropDraggedItemRelative(1, -1, 0);
+	Orion.Wait('500');
+	Orion.DragItem('0x400292A0', 1);
+	Orion.Wait('300');
+	Orion.DropDraggedItemRelative(0, -1, 0);
+	Orion.Wait('500');
+	Orion.DragItem('0x4002B606', 1);
+	Orion.Wait('300');
+	Orion.DropDraggedItemRelative(-1, -1, 0);
+	Orion.Wait('500');
+}

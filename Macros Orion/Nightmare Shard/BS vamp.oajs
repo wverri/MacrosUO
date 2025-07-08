@@ -26,7 +26,7 @@ function withdrawIngots() {
 		Orion.Print("Peso acima do permitido.");
 		Orion.PauseScript();
 	}
-    Orion.MoveItemType(0x1BEF, 0x0000, Player.BankSerial(), 4000, 'backpack');
+    Orion.MoveItemType(0x1BEF, 0x0000, Player.BankSerial(), 600, 'backpack');
     Orion.Wait(500);
 }
 
@@ -64,7 +64,7 @@ function BS() {
         withdrawIngots();
         updateReport();
 
-        Orion.WalkTo(5657, 306, 0, 0, 1);
+        Orion.WalkTo(5657, 307, 0, 0, 1);
         Orion.Wait(500);
         craftAndSell();
         Orion.Wait(10000);

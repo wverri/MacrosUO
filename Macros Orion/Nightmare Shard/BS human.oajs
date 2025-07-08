@@ -1,3 +1,4 @@
+var bauBS = Player.BankSerial();
 var ingotsUsed = 0;
 var goldAcquired = 0;
 var goldStart = Player.Gold();
@@ -22,11 +23,11 @@ function depositItems() {
 }
 
 function withdrawIngots() {
-	if (Player.Weight() > 100) {
+	if (Player.Weight() > 150) {
 		Orion.Print("Peso acima do permitido.");
 		Orion.PauseScript();
 	}
-    Orion.MoveItemType(0x1BEF, 0x0000, Player.BankSerial(), 450, 'backpack');
+    Orion.MoveItemType(0x1BEF, 0x0000, Player.BankSerial(), 900, 'backpack');
     Orion.Wait(500);
 }
 
@@ -46,7 +47,7 @@ function craftAndSell() {
 				{
 					if (menu0.Name() === "Blacksmith")
 					{
-						menu0.Select('war axe (5 iron ingots)');
+						menu0.Select('katana');
 						Orion.Wait(7000);
 						ingotsUsed += 6;
 					}

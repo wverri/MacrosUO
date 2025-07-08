@@ -1,7 +1,7 @@
 function highlightTraps() {
     var trapGraphic = '0x119B';
-    var mapWidth = 20; // Define a largura da área a ser escaneada
-    var mapHeight = 20; // Define a altura da área a ser escaneada
+    var mapWidth = 15; // Define a largura da área a ser escaneada
+    var mapHeight = 15; // Define a altura da área a ser escaneada
     var playerX = Player.X();
     var playerY = Player.Y();
     var startX = playerX - mapWidth;

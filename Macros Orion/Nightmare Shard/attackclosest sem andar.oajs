@@ -10,7 +10,7 @@ function attackClosest()
 		Orion.Wait(50);
 		if (obj != null) {
 			Orion.Attack(enemy);
-			Orion.WalkTo(obj.X(), obj.Y(), obj.Z(), 1);
+			//Orion.WalkTo(obj.X(), obj.Y(), obj.Z(), 1);
 		}
 	}
 }

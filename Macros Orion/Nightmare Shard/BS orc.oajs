@@ -1,4 +1,4 @@
-var bauBS = '0x4000A90D';
+var bauBS = Player.BankSerial();
 var ingotsUsed = 0;
 var goldAcquired = 0;
 var goldStart = Player.Gold();
@@ -27,7 +27,7 @@ function withdrawIngots() {
 		Orion.Print("Peso acima do permitido.");
 		Orion.PauseScript();
 	}
-    Orion.MoveItemType(0x1BEF, 0x0000, bauBS, 500, 'backpack');
+    Orion.MoveItemType(0x1BEF, 0x0000, bauBS, 700, 'backpack');
     Orion.Wait(500);
 }
 

@@ -1,0 +1,79 @@
+// Paste your code here :)
+function attackClosestRail() {
+    Orion.IgnoreReset();
+    Orion.Ignore(self);
+
+    var route = [
+        { x: 5459, y: 3147 },
+        { x: 5467, y: 3151 },
+        { x: 5467, y: 3160 },
+        { x: 5478, y: 3154 },
+        { x: 5424, y: 3148 },
+        { x: 5412, y: 3122 },
+        { x: 5423, y: 3101 },
+        { x: 5430, y: 3098 },
+        { x: 5481, y: 3098 },
+        { x: 5490, y: 3087 },
+        { x: 5459, y: 3078 },
+        { x: 5400, y: 3085 },
+        { x: 5386, y: 3127 },
+        { x: 5392, y: 3175 },
+        { x: 5429, y: 3225 },
+        { x: 5459, y: 3225 },
+        { x: 5491, y: 3223 },
+        { x: 5504, y: 3219 },
+        { x: 5468, y: 3223 },
+        { x: 5438, y: 3223 },
+        { x: 5394, y: 3184 },
+        { x: 5386, y: 3133 },
+        { x: 5392, y: 3092 },
+        { x: 5447, y: 3080 },
+        { x: 5488, y: 3090 },
+        { x: 5442, y: 3098 },
+		{ x: 5412, y: 3130 }
+    ];
+    var currentRouteIndex = 0;
+
+    while (true) {
+        if (Player.Dead()) {
+            // Se o personagem estiver morto ou como fantasma, execute a função de ressurreição
+            Ress();
+            Orion.Wait(180000); // Aguarde 3 minutos até ressuscitar
+            continue; // Pule para a próxima iteração do loop
+        }
+
+		var enemy = Orion.FindType("any", "-1", "ground", "mobile | near | ignorefriends", "10", "gray | criminal | enemy | red", "!0x0190 & !0x0191");
+        var obj = Orion.FindObject(enemy);
+        Orion.Wait(50);
+
+        if (obj != null) {
+        	Orion.Attack(enemy);
+            while (obj.Exists()) {
+                if (Orion.GetDistance(obj) > 1) {
+                    Orion.WalkTo(obj.X(), obj.Y(), obj.Z(), 1);
+                    Orion.Attack(enemy);
+                } else {
+                    Orion.Attack(enemy);
+                }
+            }
+        } else {
+            // Se não houver inimigos próximos, ande até a próxima coordenada da rota
+            var nextCoord = route[currentRouteIndex];
+            Orion.WalkTo(nextCoord.x, nextCoord.y, 0, 0);
+
+            // Avance para a próxima coordenada da rota (ciclo)
+            currentRouteIndex = (currentRouteIndex + 1) % route.length;
+        }
+    }
+}
+
+function Ress() {
+    Orion.HelpGump();
+    if (Orion.WaitForGump(1000)) {
+        var gump0 = Orion.GetGump('last');
+        if ((gump0 !== null) && (!gump0.Replayed()) && (gump0.ID() === '0x0000040E')) {
+            gump0.Select(Orion.CreateGumpHook(2));
+            Orion.Wait(100);
+        }
+    }
+}
